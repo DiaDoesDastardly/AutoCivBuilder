@@ -1,0 +1,14 @@
+c:\Users\borgs\Documents\AutoCivBuilder\AutoCivBuilder\bin\Debug\net8.0\AutoCivBuilder.exe
+c:\Users\borgs\Documents\AutoCivBuilder\AutoCivBuilder\bin\Debug\net8.0\AutoCivBuilder.deps.json
+c:\Users\borgs\Documents\AutoCivBuilder\AutoCivBuilder\bin\Debug\net8.0\AutoCivBuilder.runtimeconfig.json
+c:\Users\borgs\Documents\AutoCivBuilder\AutoCivBuilder\bin\Debug\net8.0\AutoCivBuilder.dll
+c:\Users\borgs\Documents\AutoCivBuilder\AutoCivBuilder\bin\Debug\net8.0\AutoCivBuilder.pdb
+c:\Users\borgs\Documents\AutoCivBuilder\AutoCivBuilder\obj\Debug\net8.0\AutoCivBuilder.GeneratedMSBuildEditorConfig.editorconfig
+c:\Users\borgs\Documents\AutoCivBuilder\AutoCivBuilder\obj\Debug\net8.0\AutoCivBuilder.AssemblyInfoInputs.cache
+c:\Users\borgs\Documents\AutoCivBuilder\AutoCivBuilder\obj\Debug\net8.0\AutoCivBuilder.AssemblyInfo.cs
+c:\Users\borgs\Documents\AutoCivBuilder\AutoCivBuilder\obj\Debug\net8.0\AutoCivBuilder.csproj.CoreCompileInputs.cache
+c:\Users\borgs\Documents\AutoCivBuilder\AutoCivBuilder\obj\Debug\net8.0\AutoCivBuilder.dll
+c:\Users\borgs\Documents\AutoCivBuilder\AutoCivBuilder\obj\Debug\net8.0\refint\AutoCivBuilder.dll
+c:\Users\borgs\Documents\AutoCivBuilder\AutoCivBuilder\obj\Debug\net8.0\AutoCivBuilder.pdb
+c:\Users\borgs\Documents\AutoCivBuilder\AutoCivBuilder\obj\Debug\net8.0\AutoCivBuilder.genruntimeconfig.cache
+c:\Users\borgs\Documents\AutoCivBuilder\AutoCivBuilder\obj\Debug\net8.0\ref\AutoCivBuilder.dll
