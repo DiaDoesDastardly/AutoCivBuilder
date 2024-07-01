@@ -4,7 +4,7 @@ CivBuilder civ = new CivBuilder();
 while(civ.initTurn()){
     civ.currentGameStats();
     civ.printMap();
-    if(civ.getCurrentTurn() == 100){
+    if(civ.getCurrentTurn() == 200){
         break;
     }
 }

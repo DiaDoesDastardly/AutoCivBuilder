@@ -1,3 +1,4 @@
+using System.Diagnostics.Tracing;
 using System.Reflection.Emit;
 
 public class CivBuilder{
@@ -16,8 +17,9 @@ public class CivBuilder{
     private Resources[] resourceType; 
     //Map of the city
     private Building[,] cityMap;
-    //What buildings the city can build
-    private Building[] availableBuildingTypes;
+
+    private upgradableBuilding test;
+    private upgradableBuilding farm;
     //List of all citizens
     private List<citizen> citizens = new List<citizen>();
     public CivBuilder(){
@@ -36,16 +38,12 @@ public class CivBuilder{
 
         //Adding used resources to the game
         resourceType = new Resources[]{
-            new Resources("Food",20),
-            new Resources("Wood",20),
-            new Resources("Stone",20),
-            new Resources("Coal",20)
+            new("Food",20),
+            new("Wood",20),
+            new("Stone",20),
+            new("Coal",20),
+            new("Wehite",20)
         };
-        //Adding starter structures to of the map
-        addBuilding(Building.prefabHouse(0), mapSizeX/2, mapSizeY/2, true);
-        addBuilding(Building.prefabFarm(0), 0, 0, true);
-        addBuilding(Building.prefabMine(0), 0, 1, true);
-        addBuilding(Building.prefabLumber(0), 0, 2, true);
         
         //Adding the first citizens
         for(int i = 0; i < 4; i++){
@@ -53,12 +51,34 @@ public class CivBuilder{
         }
         //Setting population count
         population = citizens.Count;
+
+        test = new upgradableBuilding(
+            [
+                "Weh",
+                "Weh weh"
+            ],
+            "Test",
+            1,
+            1,
+            1,
+            [
+                new Resources("Wood",-1,0),
+                new Resources("Wehite",0,1)
+            ],
+            false, 
+            true                
+        );
+        addBuilding(test.createPrefab(0),1,1,true);
+        addBuilding(test.createPrefab(1),2,1,true);
+        
+        //Adding starter structures to of the map
+        addBuilding(Building.prefabHouse(0), mapSizeX/2, mapSizeY/2, true);
+        addBuilding(Building.prefabFarm(0), 0, 0, true);
+        addBuilding(Building.prefabMine(0), 0, 1, true);
+        addBuilding(Building.prefabLumber(0), 0, 2, true);
     }
     public Boolean initTurn(){
         //Resetting trackers for resource production and housing
-        //foodPerTurn = 0;
-        //woodPerTurn = 0;
-        //stonePerTurn = 0;
         housingCount = 0;
         workerCount = 0;
         foreach(Resources item in resourceType){
@@ -91,11 +111,11 @@ public class CivBuilder{
         resourceType[0].perTurn -= population;
         if(population<housingCount){
             for(int i = 0; i<population/2; i++){
-                citizens.Add(new citizen("Newbie",turnCount));
+                citizens.Add(new("Newbie",turnCount));
             }
         }else{
             for(int i = 0; i<population/10; i++){
-                citizens.Add(new citizen("Newbie",turnCount));
+                citizens.Add(new("Newbie",turnCount));
             }
         }
         
@@ -122,6 +142,11 @@ public class CivBuilder{
         if(!replaceBuildings(Building.prefabLumber(1), Building.prefabLumber(2), 1))
         if(!replaceBuildings(Building.prefabLumber(0), Building.prefabLumber(1), 1))
         buildBuildings(Building.prefabLumber(0),1);
+
+        if(resourceType[4].perTurn<=turnCount/2)
+        for(int level = test.upgradeNames.Length - 1; level > 0; level--)
+        if(!replaceBuildings(test.createPrefab(level-1), test.createPrefab(level), 1)) break;
+
 
         //Setting population count
         population = citizens.Count;
@@ -172,12 +197,10 @@ public class CivBuilder{
                                 citizens[i].employed = true;
                                 citizens[i].placeOfEmployment = new int[]{initX,initY};
                                 cityMap[initX, initY].workerCount++;
-                                //Console.WriteLine("Hired!");
                             }
                             if(cityMap[initX, initY].workerCount == cityMap[initX, initY].employeeCount){
                                 break;
-                            }
-                            
+                            }                            
                         }
                     }
                     if(cityMap[initX, initY].populationCount < cityMap[initX, initY].popHousing){
@@ -197,20 +220,10 @@ public class CivBuilder{
                             !Resources.checkStock(resourceType,cityMap[initX, initY].resources, true)
                         ){
                             productionMod = 0;
-                        }else productionMod = (double)(cityMap[initX, initY].workerCount)/(double)(cityMap[initX, initY].employeeCount);
+                        }else productionMod = (double)cityMap[initX, initY].workerCount/(double)cityMap[initX, initY].employeeCount;
                         for(int count = 0; count<resourceType.Length; count++){
                             resourceType[count].findThenAdd(cityMap[initX, initY].resources,productionMod,false);
                         }
-                        /*
-                        foodCount += (int)(productionMod*cityMap[initX, initY].foodProduction);
-                        woodCount += (int)(productionMod*cityMap[initX, initY].woodProduction);
-                        stoneCount += (int)(productionMod*cityMap[initX, initY].stoneProduction);  
-
-                        foodPerTurn += (int)(productionMod*cityMap[initX, initY].foodProduction);       
-                        woodPerTurn += (int)(productionMod*cityMap[initX, initY].woodProduction);
-                        stonePerTurn += (int)(productionMod*cityMap[initX, initY].stoneProduction);         
-                        */
-                        //Console.WriteLine(productionMod + " " + foodCount);
                         workerCount += cityMap[initX, initY].workerCount;
                     }
                     if(cityMap[initX, initY].popHousing > 0){
@@ -218,7 +231,6 @@ public class CivBuilder{
                             !Resources.checkStock(resourceType,cityMap[initX, initY].resources, true)
                         )continue;
                         housingCount += cityMap[initX, initY].popHousing;
-                        //Console.WriteLine(cityMap[initX, initY].populationCount);
                     }
                 }
             }
@@ -328,19 +340,9 @@ public class CivBuilder{
         //If the spot is open then build
         cityMap[xLocation,yLocation] = targetBuilding.buildSelf();
         if(!adminBuild){
-            //Remove the resources used to build the building
-            /*
-            foodCount -= targetBuilding.foodCost;
-            woodCount -= targetBuilding.woodCost;
-            stoneCount -= targetBuilding.stoneCost;
-            */
             for(int i = 0; i<resourceType.Length; i++){
                 resourceType[i].findThenAdd(targetBuilding.resources,1, true);
             }
-            //Decreasing demand for resources by resource production
-            //foodDemand -= targetBuilding.foodProduction;
-            //woodDemand -= targetBuilding.woodProduction;
-            //stoneDemand -= targetBuilding.stoneProduction;
         }
         //Increase adjacent building ranks 
         cityMap[xLocation,yLocation].buildingRank += targetBuilding.buildingRank;
@@ -353,11 +355,7 @@ public class CivBuilder{
         if(yLocation-1>=0 && xLocation+1<mapSizeX) cityMap[xLocation+1,yLocation-1].buildingRank += targetBuilding.buildingRank;
         if(xLocation+1<mapSizeX && yLocation+1<mapSizeY) cityMap[xLocation+1,yLocation+1].buildingRank += targetBuilding.buildingRank;
         if(yLocation+1<mapSizeY && xLocation-1>=0) cityMap[xLocation-1,yLocation+1].buildingRank += targetBuilding.buildingRank;
-        
-        
-        //Add resource production
-        //foodPerTurn += availableBuildingTypes[buildingType].foodProduction;
-        //housingCount += availableBuildingTypes[buildingType].popHousing;
+
         return true;
     }
     public Boolean replaceBuildings(Building targetBuilding, Building replacingBuilding, int buildingCount){

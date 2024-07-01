@@ -12,3 +12,4 @@ c:\Users\borgs\Documents\AutoCivBuilder\AutoCivBuilder\obj\Debug\net8.0\refint\A
 c:\Users\borgs\Documents\AutoCivBuilder\AutoCivBuilder\obj\Debug\net8.0\AutoCivBuilder.pdb
 c:\Users\borgs\Documents\AutoCivBuilder\AutoCivBuilder\obj\Debug\net8.0\AutoCivBuilder.genruntimeconfig.cache
 c:\Users\borgs\Documents\AutoCivBuilder\AutoCivBuilder\obj\Debug\net8.0\ref\AutoCivBuilder.dll
+c:\Users\borgs\Documents\AutoCivBuilder\AutoCivBuilder\obj\Debug\net8.0\AutoCivBuilder.sourcelink.json
