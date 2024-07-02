@@ -3,25 +3,24 @@ using System.Reflection.Emit;
 
 public class CivBuilder{
     //What turn is it
-    private int turnCount;
+    public int turnCount;
     //Size of map
-    private int mapSizeX;
-    private int mapSizeY;
+    public int mapSizeX;
+    public int mapSizeY;
     //How many people live in the city
-    private int population;
+    public int population;
     //How many people work in the city
-    private int workerCount;
+    public int workerCount;
     //How much housing is open.
-    private int housingCount;    
+    public int housingCount;    
     //Types of resources
-    private Resources[] resourceType; 
+    public Resources[] resourceType; 
     //Map of the city
-    private Building[,] cityMap;
-
-    private upgradableBuilding test;
-    private upgradableBuilding farm;
+    public Building[,] cityMap;
+    public upgradableBuilding test;
+    public upgradableBuilding farm;
     //List of all citizens
-    private List<citizen> citizens = new List<citizen>();
+    public List<Citizen> citizens = new List<Citizen>();
     public CivBuilder(){
         //Initializing variables
         turnCount = 0;
@@ -47,26 +46,32 @@ public class CivBuilder{
         
         //Adding the first citizens
         for(int i = 0; i < 4; i++){
-            citizens.Add(new citizen("Newbie",0));
+            citizens.Add(new Citizen("Newbie",0));
         }
         //Setting population count
         population = citizens.Count;
+        //Setting population consumables
+        Citizen.baseResources = new Resources[]{
+            new("Food",0,-1)
+        };
 
-        test = new upgradableBuilding(
+        test = new upgradableBuilding( 
+            "Test", //Building type name
+            //Upgrade names
             [
                 "Weh",
                 "Weh weh"
-            ],
-            "Test",
-            1,
-            1,
-            1,
+            ], 
+            1, // Building rank
+            1, // Pop housing
+            1, // Employee Max
+            //Building resource cost and per turn
             [
                 new Resources("Wood",-1,0),
                 new Resources("Wehite",0,1)
-            ],
-            false, 
-            true                
+            ], 
+            false, //Needs neighbors
+            true //Build on outskirts 
         );
         addBuilding(test.createPrefab(0),1,1,true);
         addBuilding(test.createPrefab(1),2,1,true);
@@ -90,18 +95,20 @@ public class CivBuilder{
         //Housing and employing pops and producing resources
         buildingAction();
         //Removing food eaten
-        resourceType[0].count -= population;
+        //resourceType[0].count -= population;
+        foreach(Resources item in resourceType)
+        item.findThenAdd(Citizen.baseResources,population,false);
         //Removing those who starve
         if(resourceType[0].count<=0){
             //population += foodCount;
             resourceType[0].demand = Math.Abs(resourceType[0].count);
-            removeCitizens(Math.Abs(resourceType[0].count));
+            Citizen.removeCitizens(Math.Abs(resourceType[0].count), this);
             resourceType[0].count = 0;
         }
         //Removing those who die from the elements
         if(population>housingCount){
             resourceType[0].demand -= Math.Abs((population-housingCount)/2);
-            removeCitizens(Math.Abs((population-housingCount)/2));
+            Citizen.removeCitizens(Math.Abs((population-housingCount)/2),this);
         }
         //If every one is gone then return false
         if(population<=0){
@@ -113,10 +120,12 @@ public class CivBuilder{
             for(int i = 0; i<population/2; i++){
                 citizens.Add(new("Newbie",turnCount));
             }
+            //Citizen.addCitizen(population/2);
         }else{
             for(int i = 0; i<population/10; i++){
                 citizens.Add(new("Newbie",turnCount));
             }
+            //Citizen.addCitizen(population/10);
         }
         
         if(resourceType[0].demand>0){
@@ -183,9 +192,6 @@ public class CivBuilder{
             Console.Write("\n");
         }
     }
-    public int getCurrentTurn(){
-        return turnCount;
-    }
     public void buildingAction(){
         double productionMod;
         for(int initX = 0; initX < mapSizeX; initX++){
@@ -198,9 +204,7 @@ public class CivBuilder{
                                 citizens[i].placeOfEmployment = new int[]{initX,initY};
                                 cityMap[initX, initY].workerCount++;
                             }
-                            if(cityMap[initX, initY].workerCount == cityMap[initX, initY].employeeCount){
-                                break;
-                            }                            
+                            if(cityMap[initX, initY].workerCount == cityMap[initX, initY].employeeCount) break;
                         }
                     }
                     if(cityMap[initX, initY].populationCount < cityMap[initX, initY].popHousing){
@@ -210,15 +214,11 @@ public class CivBuilder{
                                 citizens[i].placeOfResidence = new int[]{initX,initY};
                                 cityMap[initX, initY].populationCount++;
                             }
-                            if(cityMap[initX, initY].populationCount == cityMap[initX, initY].popHousing){
-                                break;
-                            }
+                            if(cityMap[initX, initY].populationCount == cityMap[initX, initY].popHousing) break;
                         }
                     }
                     if(cityMap[initX, initY].employeeCount > 0){
-                        if(
-                            !Resources.checkStock(resourceType,cityMap[initX, initY].resources, true)
-                        ){
+                        if(!Resources.checkStock(resourceType,cityMap[initX, initY].resources, true)){
                             productionMod = 0;
                         }else productionMod = (double)cityMap[initX, initY].workerCount/(double)cityMap[initX, initY].employeeCount;
                         for(int count = 0; count<resourceType.Length; count++){
@@ -235,31 +235,6 @@ public class CivBuilder{
                 }
             }
         }
-    }
-    
-    public void removeCitizen(int citizenId){
-        if(citizens[citizenId].employed){
-            cityMap[
-                citizens[citizenId].placeOfEmployment[0],
-                citizens[citizenId].placeOfEmployment[1]
-            ].workerCount -= 1;
-        }
-        if(citizens[citizenId].housed){
-            cityMap[
-                citizens[citizenId].placeOfResidence[0],
-                citizens[citizenId].placeOfResidence[1]
-            ].populationCount -= 1;
-        }
-        citizens.RemoveAt(citizenId);
-    }
-    public void removeCitizens(int removalCount){
-        for(int i = 0; i < removalCount; i++){
-            if(citizens.Count == 0){
-                break;
-            }
-            removeCitizen(0);
-        }
-        population = citizens.Count;
     }
     public Boolean buildBuildings(Building targetBuilding, int buildingCount){
         List<int[]> targetBuildingSites = new List<int[]>();
@@ -367,9 +342,7 @@ public class CivBuilder{
             for(int initY = 0; initY < mapSizeY; initY++){
                 //If building needs to be on the outskirts
                 //Also check if building needs to be built next to others and if spot is adjacent to a building
-                if(
-                    cityMap[initX,initY].name == targetBuilding.name        
-                ){
+                if(cityMap[initX,initY].name == targetBuilding.name){
                     //This equation should make it so that the bonus gets lower the further from the center it gets
                     buildBonus = (int)-Math.Sqrt(
                         (initX-mapSizeX/2)*(initX-mapSizeX/2)+(initY-mapSizeY/2)*(initY-mapSizeY/2)
@@ -377,6 +350,7 @@ public class CivBuilder{
                     buildBonus += cityMap[initX,initY].buildingRank;
                     sortedItem = false;
                     //If available spots are found, add them to the target building sites
+                    //We order them from greatest to least to make proper placement a bit easier
                     if(targetBuildingSites.Count == 0 || targetBuilding.buildOnOutskirts)
                         targetBuildingSites.Add(new int[]{initX,initY,buildBonus});
                     else{
@@ -413,20 +387,3 @@ public class CivBuilder{
     }
 }
 
-public class citizen{
-    public string name;
-    public int birthTurn;
-    public int[] placeOfEmployment;
-    public int[] placeOfResidence;
-    public Boolean employed;
-    public Boolean housed;
-    public citizen(){
-        name = "null";
-    }
-    public citizen(string name, int turn){
-        this.name = name;
-        employed = false;
-        housed = false;
-        birthTurn = turn;
-    }
-}

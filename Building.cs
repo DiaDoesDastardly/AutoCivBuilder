@@ -176,9 +176,9 @@ public class upgradableBuilding : Building{
     }
 
     public upgradableBuilding(
+            String buildingTypeName,
             String[] upgradeNames,
             //String[] upgradeScaling, 
-            String buildingTypeName,
             int buildingRank,
             int popHousing,
             int employeeCount,

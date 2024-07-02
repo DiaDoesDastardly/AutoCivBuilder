@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Charley Dodgion\\Documents\\AutoCivBuilder\\AutoCivBuilder.csproj": {}
+    "c:\\Users\\Charley Dodgion\\Documents\\AutoCivBuilder\\AutoCivBuilder.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Charley Dodgion\\Documents\\AutoCivBuilder\\AutoCivBuilder.csproj": {
+    "c:\\Users\\Charley Dodgion\\Documents\\AutoCivBuilder\\AutoCivBuilder.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Charley Dodgion\\Documents\\AutoCivBuilder\\AutoCivBuilder.csproj",
+        "projectUniqueName": "c:\\Users\\Charley Dodgion\\Documents\\AutoCivBuilder\\AutoCivBuilder.csproj",
         "projectName": "AutoCivBuilder",
-        "projectPath": "C:\\Users\\Charley Dodgion\\Documents\\AutoCivBuilder\\AutoCivBuilder.csproj",
+        "projectPath": "c:\\Users\\Charley Dodgion\\Documents\\AutoCivBuilder\\AutoCivBuilder.csproj",
         "packagesPath": "C:\\Users\\Charley Dodgion\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Charley Dodgion\\Documents\\AutoCivBuilder\\obj\\",
+        "outputPath": "c:\\Users\\Charley Dodgion\\Documents\\AutoCivBuilder\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Charley Dodgion\\AppData\\Roaming\\NuGet\\NuGet.Config"
