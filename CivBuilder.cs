@@ -27,7 +27,7 @@ public class CivBuilder{
         turnCount = 0;
         population = 0;
         mapSizeX = 11;
-        mapSizeY = 11;
+        mapSizeY = 8;
         cityMap = new Building[mapSizeX,mapSizeY];
         //Setting every tile on the map to an empty building spot
         for(int initX = 0; initX < mapSizeX; initX++){
