@@ -219,4 +219,16 @@ public class upgradableBuilding : Building{
             buildOnOutskirts
         );
     }
+
+    public Boolean autoUpgrade(CivBuilder city){
+        for(int level = 1; level< upgradeNames.Length; level++)
+        if(city.replaceBuildings(createPrefab(level-1), createPrefab(level), 1)) return true;
+        return false;
+    }
+    public Boolean build(CivBuilder city){
+        if(!autoUpgrade(city)) 
+        if(city.buildBuildings(createPrefab(0),1))
+        return true;
+        return false;
+    }
 }

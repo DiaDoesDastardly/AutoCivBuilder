@@ -19,6 +19,9 @@ public class CivBuilder{
     public Building[,] cityMap;
     public upgradableBuilding test;
     public upgradableBuilding farm;
+    public upgradableBuilding house;
+    public upgradableBuilding logger;
+    public upgradableBuilding mine;
     //List of all citizens
     public List<Citizen> citizens = new List<Citizen>();
     public CivBuilder(){
@@ -40,8 +43,7 @@ public class CivBuilder{
             new("Food",20),
             new("Wood",20),
             new("Stone",20),
-            new("Coal",20),
-            new("Wehite",20)
+            new("Coal",20)
         };
         
         //Adding the first citizens
@@ -73,14 +75,96 @@ public class CivBuilder{
             false, //Needs neighbors
             true //Build on outskirts 
         );
+        farm = new upgradableBuilding( 
+            "Farm", //Building type name
+            //Upgrade names
+            [
+                "Berry Bush",
+                "Basic Farm",
+                "Farm",
+                "Factory Farm"
+            ], 
+            0, // Building rank
+            0, // Pop housing
+            4, // Employee Max
+            //Building resource cost and per turn
+            [
+                new Resources("Wood",-10,0),
+                new Resources("Stone",-10,0),
+                new Resources("Food",0,40)
+            ], 
+            false, //Needs neighbors
+            true //Build on outskirts 
+        );
+        house = new upgradableBuilding( 
+            "House", //Building type name
+            //Upgrade names
+            [
+                "Small hut",
+                "Wooden House",
+                "Townhouse",
+                "Apartment Complex"
+            ], 
+            5, // Building rank
+            20, // Pop housing
+            0, // Employee Max
+            //Building resource cost and per turn
+            [
+                new Resources("Wood",-12,0),
+                new Resources("Stone",-12,0)
+            ], 
+            true, //Needs neighbors
+            false //Build on outskirts 
+        );
+        logger = new upgradableBuilding( 
+            "Logger", //Building type name
+            //Upgrade names
+            [
+                "Stick Gatherers",
+                "Lumberjack hut",
+                "Log Mill",
+                "Logging Company"
+            ], 
+            0, // Building rank
+            0, // Pop housing
+            4, // Employee Max
+            //Building resource cost and per turn
+            [
+                new Resources("Wood",0,4),
+                new Resources("Stone",-10,0)
+            ], 
+            false, //Needs neighbors
+            true //Build on outskirts 
+        );
+        mine = new upgradableBuilding( 
+            "Mine", //Building type name
+            //Upgrade names
+            [
+                "Stone Gatherers",
+                "Stone Mine",
+                "Stone Quarry",
+                "Mountain Digger"
+            ], 
+            0, // Building rank
+            0, // Pop housing
+            4, // Employee Max
+            //Building resource cost and per turn
+            [
+                new Resources("Wood",-10,0),
+                new Resources("Stone",0,4)
+            ], 
+            false, //Needs neighbors
+            true //Build on outskirts 
+        );
+        
         addBuilding(test.createPrefab(0),1,1,true);
         addBuilding(test.createPrefab(1),2,1,true);
         
         //Adding starter structures to of the map
-        addBuilding(Building.prefabHouse(0), mapSizeX/2, mapSizeY/2, true);
-        addBuilding(Building.prefabFarm(0), 0, 0, true);
-        addBuilding(Building.prefabMine(0), 0, 1, true);
-        addBuilding(Building.prefabLumber(0), 0, 2, true);
+        addBuilding(house.createPrefab(0), mapSizeX/2, mapSizeY/2, true);
+        addBuilding(farm.createPrefab(0), 0, 0, true);
+        addBuilding(logger.createPrefab(0), 0, 1, true);
+        addBuilding(mine.createPrefab(0), 0, 2, true);
     }
     public Boolean initTurn(){
         //Resetting trackers for resource production and housing
@@ -95,12 +179,10 @@ public class CivBuilder{
         //Housing and employing pops and producing resources
         buildingAction();
         //Removing food eaten
-        //resourceType[0].count -= population;
         foreach(Resources item in resourceType)
         item.findThenAdd(Citizen.baseResources,population,false);
         //Removing those who starve
         if(resourceType[0].count<=0){
-            //population += foodCount;
             resourceType[0].demand = Math.Abs(resourceType[0].count);
             Citizen.removeCitizens(Math.Abs(resourceType[0].count), this);
             resourceType[0].count = 0;
@@ -128,35 +210,14 @@ public class CivBuilder{
             //Citizen.addCitizen(population/10);
         }
         
-        if(resourceType[0].demand>0){
-            if(!replaceBuildings(Building.prefabFarm(2), Building.prefabFarm(3), 1))
-            if(!replaceBuildings(Building.prefabFarm(1), Building.prefabFarm(2), 1))
-            if(!replaceBuildings(Building.prefabFarm(0), Building.prefabFarm(1), 1))
-            buildBuildings(Building.prefabFarm(0),1);
-        }else{
-            if(!replaceBuildings(Building.prefabHouse(2), Building.prefabHouse(3), 1))
-            if(!replaceBuildings(Building.prefabHouse(1), Building.prefabHouse(2), 1))
-            if(!replaceBuildings(Building.prefabHouse(0), Building.prefabHouse(1), 1))
-            buildBuildings(Building.prefabHouse(0),1);
-        }
+        if(resourceType[0].demand>0) farm.build(this);
+        else house.build(this);
 
-        if(resourceType[2].perTurn<=turnCount/2)
-        if(!replaceBuildings(Building.prefabMine(2), Building.prefabMine(3), 1))
-        if(!replaceBuildings(Building.prefabMine(1), Building.prefabMine(2), 1))
-        if(!replaceBuildings(Building.prefabMine(0), Building.prefabMine(1), 1))
-        buildBuildings(Building.prefabMine(0),1);
+        if(resourceType[2].perTurn<=turnCount/2)mine.build(this);
 
-        if(resourceType[1].perTurn<=turnCount/2)
-        if(!replaceBuildings(Building.prefabLumber(2), Building.prefabLumber(3), 1))
-        if(!replaceBuildings(Building.prefabLumber(1), Building.prefabLumber(2), 1))
-        if(!replaceBuildings(Building.prefabLumber(0), Building.prefabLumber(1), 1))
-        buildBuildings(Building.prefabLumber(0),1);
+        if(resourceType[1].perTurn<=turnCount/2)logger.build(this);
 
-        if(resourceType[4].perTurn<=turnCount/2)
-        for(int level = test.upgradeNames.Length - 1; level > 0; level--)
-        if(!replaceBuildings(test.createPrefab(level-1), test.createPrefab(level), 1)) break;
-
-
+        //if(resourceType[4].perTurn<=turnCount/2) test.build(this);
         //Setting population count
         population = citizens.Count;
 
