@@ -5,7 +5,6 @@ public class Citizen{
     public int[] placeOfResidence;
     public Boolean employed;
     public Boolean housed;
-    public static Resources[] resources;
     public static Resources[] baseResources;
     public Citizen(){
         name = "null";
@@ -16,18 +15,6 @@ public class Citizen{
         housed = false;
         birthTurn = turn;
     }
-    public static void addCitizen(int newCount){
-        for(int i = 0; i<resources.Length; i++) {
-            resources[i].count += baseResources[i].count * newCount;
-        }
-    }
-
-    public static void removeCitizen(int newCount){
-        for(int i = 0; i<resources.Length; i++) {
-            resources[i].count -= baseResources[i].count * newCount;
-        }
-    }
-
     public static void removeCitizen(int citizenId, CivBuilder city){
         if(city.citizens[citizenId].employed){
             city.cityMap[
@@ -48,7 +35,32 @@ public class Citizen{
             if(city.citizens.Count == 0) break;
             removeCitizen(0, city);
         }
-        //removeCitizen(removalCount);
-        city.population = city.citizens.Count;
+    }
+    public static Boolean citizenUpkeep(CivBuilder city){
+        
+        int populationIndex = Resources.getIndex(city.resourceType, new("Population"));
+        int population = Resources.findThenReturn(new("Population"), city.resourceType).count;
+        foreach(Resources item in city.resourceType){
+            if(item.findThenAdd(baseResources, population, false)){
+                if(item.count<0){
+                    removeCitizens(Math.Abs(item.count), city);
+                    city.resourceType[populationIndex].count += item.count;
+                    city.resourceType[populationIndex].perTurn += item.perTurn;
+                    item.demand = Math.Abs(item.count);
+                    item.count = 0;                    
+                } 
+            }
+        }
+        if(city.resourceType[populationIndex].count < 0) return false;
+        for(int i = 0; i < city.resourceType[populationIndex].count/10; i++){
+            city.citizens.Add(new("Newbie",city.turnCount));
+            if(i+city.resourceType[populationIndex].count >= city.resourceType[populationIndex].storage){
+                city.resourceType[populationIndex].demand = city.resourceType[populationIndex].count-i;
+                break;
+            }
+        }
+        city.resourceType[populationIndex].perTurn += city.resourceType[populationIndex].count/2;
+        city.resourceType[populationIndex].count += city.resourceType[populationIndex].count/2;
+        return true;
     }
 }

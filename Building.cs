@@ -153,19 +153,15 @@ public class Building{
 
 public class upgradableBuilding : Building{
     public String[] upgradeNames;
-    //public String[] upgradeScaling;
     public upgradableBuilding(){
         //Empty Case
     }
 
     public upgradableBuilding(
             String[] upgradeNames,
-            //String[] upgradeScaling, 
             Building baseBuilding
         ){
         this.upgradeNames = upgradeNames;
-        //this.upgradeScaling = upgradeScaling;
-        //this.baseBuilding = baseBuilding;
         name = baseBuilding.name;
         buildingRank = baseBuilding.buildingRank;
         popHousing = baseBuilding.popHousing;
@@ -178,7 +174,6 @@ public class upgradableBuilding : Building{
     public upgradableBuilding(
             String buildingTypeName,
             String[] upgradeNames,
-            //String[] upgradeScaling, 
             int buildingRank,
             int popHousing,
             int employeeCount,
@@ -187,7 +182,6 @@ public class upgradableBuilding : Building{
             Boolean buildOnOutskirts
         ){
         this.upgradeNames = upgradeNames;
-        //this.upgradeScaling = upgradeScaling;
         name = buildingTypeName;
         this.buildingRank = buildingRank;
         this.popHousing = popHousing;
@@ -198,15 +192,21 @@ public class upgradableBuilding : Building{
     }
 
     public Building createPrefab(int buildLevel){
+        //If the input build level is higher than the amount of upgrades a building has
+        //we then output an empty building
         if(buildLevel>upgradeNames.Length-1) return new Building();
 
+        //Creating new resource array for the new building
         Resources[] upgradedResource = new Resources[resources.Length];
 
+        //Creating new resource object that is scaled by the building level and 
+        //storing it in the new resources array
         for(int i = 0; i < upgradedResource.Length; i++)
         upgradedResource[i] = new Resources(
             resources[i].name,
             resources[i].count*(buildLevel+1),
-            resources[i].perTurn*(buildLevel+1)
+            resources[i].perTurn*(buildLevel+1),
+            resources[i].storage*(buildLevel+1)
         );
 
         return new Building(
