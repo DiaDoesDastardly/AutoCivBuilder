@@ -178,16 +178,16 @@ public class CivBuilder{
         turnCount++;
 
         //Housing and employing pops and producing resources
-        
         buildingAction();
+
         //Removing the resources that citizens need and the citizens that don't use them
         //Also producing new citizens
         Citizen.citizenUpkeep(this);
         //Removing resources that are not stored away
         foreach(Resources item in resourceType){
             if(item.count > item.storage){
-            item.count = item.storage;
-            item.perTurn += item.storage-item.count;
+                item.count = item.storage;
+                item.perTurn += item.storage-item.count;
                 if(item.name == "Population") {
                     Citizen.removeCitizens(Math.Abs(item.storage-item.count),this);
                 }
@@ -199,8 +199,10 @@ public class CivBuilder{
         
         //If the people demand food then make farms
         if(resourceType[0].demand>0) farm.build(this);
+        
         //Make houses if we don't have enough room
         if(resourceType[4].demand>0) house.build(this);
+
         //Creating mines and lumberyards to keep up with expansion demand
         if(resourceType[2].perTurn<=turnCount/2)mine.build(this);
         if(resourceType[1].perTurn<=turnCount/2)logger.build(this);
@@ -258,17 +260,6 @@ public class CivBuilder{
                             if(cityMap[initX, initY].workerCount == cityMap[initX, initY].employeeCount) break;
                         }
                     }
-                    /*
-                    if(cityMap[initX, initY].populationCount < cityMap[initX, initY].popHousing){
-                        for(int i = 0; i < citizens.Count; i++){
-                            if(!citizens[i].housed){
-                                citizens[i].housed = true;
-                                citizens[i].placeOfResidence = new int[]{initX,initY};
-                                cityMap[initX, initY].populationCount++;
-                            }
-                            if(cityMap[initX, initY].populationCount == cityMap[initX, initY].popHousing) break;
-                        }
-                    }*/
                     if(cityMap[initX, initY].employeeCount > 0){
                         if(!Resources.checkStock(resourceType,cityMap[initX, initY].resources, true)) productionMod = 0;
                         else productionMod = (double)cityMap[initX, initY].workerCount/(double)cityMap[initX, initY].employeeCount;
