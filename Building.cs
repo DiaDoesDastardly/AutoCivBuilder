@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.DirectoryServices.ActiveDirectory;
 
 public class Building{
     //Building name
@@ -17,6 +18,8 @@ public class Building{
     public int buildingRank;
     //What model does the building use
     public string model;
+    //What level is the building
+    public int level;
 
     //------------------------
 
@@ -32,6 +35,7 @@ public class Building{
 
     public Building(){
         name = "empty";
+        model = "";
         emptyTile = true;
         buildingRank = 0;
         resources = new Resources[0];
@@ -39,6 +43,7 @@ public class Building{
     public Building(
             String name, 
             String model,
+            int level,
             int buildingRank, 
             int popHousing, 
             int employeeCount, 
@@ -47,6 +52,8 @@ public class Building{
             Boolean buildOnOutskirts
         ){
         this.name = name;
+        this.model = model;
+        this.level = level;
         this.buildingRank = buildingRank;
         this.popHousing = popHousing;
         this.employeeCount = employeeCount;
@@ -60,6 +67,7 @@ public class Building{
         return new Building(
             name,
             model,
+            level,
             buildingRank,
             popHousing,
             employeeCount,
@@ -85,6 +93,7 @@ public class upgradableBuilding : Building{
         ){
         this.upgradeNames = upgradeNames;
         name = baseBuilding.name;
+        level = baseBuilding.level;
         buildingRank = baseBuilding.buildingRank;
         popHousing = baseBuilding.popHousing;
         employeeCount = baseBuilding.employeeCount;
@@ -136,6 +145,7 @@ public class upgradableBuilding : Building{
         return new Building(
             upgradeNames[buildLevel],
             model,
+            buildLevel,
             buildingRank * (buildLevel+1),
             popHousing * (buildLevel+1),
             employeeCount,

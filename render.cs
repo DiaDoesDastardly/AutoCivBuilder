@@ -77,9 +77,9 @@ namespace PenroseEngine{
                 tempPoint = rotatePoints(
                     rotationalMatrix, 
                     new double[]{
-                        renderableObject.vertices[index].x+renderableObject.position.x,
-                        renderableObject.vertices[index].y+renderableObject.position.y,
-                        renderableObject.vertices[index].z+renderableObject.position.z
+                        (renderableObject.vertices[index].x*renderableObject.scale.x)+renderableObject.position.x,
+                        (renderableObject.vertices[index].y*renderableObject.scale.y)+renderableObject.position.y,
+                        (renderableObject.vertices[index].z*renderableObject.scale.z)+renderableObject.position.z
                     }, 
                     new double[]{0,0,0}
                 );
@@ -93,14 +93,14 @@ namespace PenroseEngine{
             for(int index = 0; index < renderableObject.triangles.Length; index++){
                 //Finding the deltaAB and deltaAC for this triangle 
                 deltaAB = new double[]{
-                    vertexHolder[renderableObject.triangles[index][1]][0]-vertexHolder[renderableObject.triangles[index][0]][0],
-                    vertexHolder[renderableObject.triangles[index][1]][1]-vertexHolder[renderableObject.triangles[index][0]][1],
-                    vertexHolder[renderableObject.triangles[index][1]][2]-vertexHolder[renderableObject.triangles[index][0]][2],
+                    vertexHolder[renderableObject.triangles[index][1]].x-vertexHolder[renderableObject.triangles[index][0]].x,
+                    vertexHolder[renderableObject.triangles[index][1]].y-vertexHolder[renderableObject.triangles[index][0]].y,
+                    vertexHolder[renderableObject.triangles[index][1]].z-vertexHolder[renderableObject.triangles[index][0]].z,
                 };
                 deltaAC = new double[]{
-                    vertexHolder[renderableObject.triangles[index][2]][0]-vertexHolder[renderableObject.triangles[index][0]][0],
-                    vertexHolder[renderableObject.triangles[index][2]][1]-vertexHolder[renderableObject.triangles[index][0]][1],
-                    vertexHolder[renderableObject.triangles[index][2]][2]-vertexHolder[renderableObject.triangles[index][0]][2],
+                    vertexHolder[renderableObject.triangles[index][2]].x-vertexHolder[renderableObject.triangles[index][0]].x,
+                    vertexHolder[renderableObject.triangles[index][2]].y-vertexHolder[renderableObject.triangles[index][0]].y,
+                    vertexHolder[renderableObject.triangles[index][2]].z-vertexHolder[renderableObject.triangles[index][0]].z,
                 };
                 //Doing backface culling at this step
                 if(deltaAB[0]*deltaAC[1] - deltaAC[0]*deltaAB[1] < 0){
@@ -122,8 +122,8 @@ namespace PenroseEngine{
                     for(double j = 0; j+i <= 1; j += 1/(triangleDensity*distAC)){
                         //Finding the point in 3d space
                         targetPoint = new double[]{
-                            vertexHolder[renderableObject.triangles[index][0]][0]+(xSize/2)+i*deltaAB[0]+j*deltaAC[0],
-                            vertexHolder[renderableObject.triangles[index][0]][1]+(ySize/2)+i*deltaAB[1]+j*deltaAC[1],
+                            vertexHolder[renderableObject.triangles[index][0]].x+(xSize/2)+i*deltaAB[0]+j*deltaAC[0],
+                            vertexHolder[renderableObject.triangles[index][0]].y+(ySize/2)+i*deltaAB[1]+j*deltaAC[1],
                             0
                         };
                         //Making sure the point is on the screen
@@ -134,7 +134,7 @@ namespace PenroseEngine{
                             ySize>targetPoint[1]
                         ){
                             //Calculating depth only if pixel is on screen
-                            targetPoint[2] = vertexHolder[renderableObject.triangles[index][0]][2]+i*deltaAB[2]+j*deltaAC[2];
+                            targetPoint[2] = vertexHolder[renderableObject.triangles[index][0]].z+i*deltaAB[2]+j*deltaAC[2];
                             //Seeing if this pixel has been interacted and if depth is lower than current value
                             if(
                                 screenInfo[(int)(screenResolution*targetPoint[0])][(int)(screenResolution*targetPoint[1])][1] != frameCounter || 
@@ -201,6 +201,12 @@ namespace PenroseEngine{
                         index/Math.Abs(pointB.x-pointA.x)*pointA.z+
                         (1-index/Math.Abs(pointB.x-pointA.x))*pointB.z
                     );
+                    if(
+                        interactedPoint.x < 0 || 
+                        interactedPoint.x >= xSize || 
+                        interactedPoint.y < 0 || 
+                        interactedPoint.y >= ySize
+                    ) continue;
                     screenInfo[(int)interactedPoint.x][(int)interactedPoint.y] = new double[]{
                         interactedPoint.z,
                         frameCounter,
@@ -220,6 +226,12 @@ namespace PenroseEngine{
                         index/Math.Abs(pointB.x-pointA.x)*pointA.z+
                         (1-index/Math.Abs(pointB.x-pointA.x))*pointB.z
                     );
+                    if(
+                        interactedPoint.x < 0 || 
+                        interactedPoint.x >= xSize || 
+                        interactedPoint.y < 0 || 
+                        interactedPoint.y >= ySize
+                    ) return;
                     screenInfo[(int)interactedPoint.x][(int)interactedPoint.y] = new double[]{
                         interactedPoint.z,
                         frameCounter,
@@ -270,11 +282,24 @@ namespace PenroseEngine{
 
         public vector3 position;
 
+        public vector3 scale;
+
         public gameObject(){
             //Empty Case
         }
         public gameObject(string filePath){
             //If the file type is not obj then throw an exception
+            if(filePath == "..\\..\\..\\Objects\\"){
+                vertices = new vector3[0];
+                triangles = new int[0][];
+                triangleColors = new int[triangles.Length];
+                for(int index = 0; index<triangles.Length; index++){
+                    triangleColors[index] = 120;
+                }
+                position = new (0,0,0);
+                return;
+            }
+            scale = new vector3(1,1,1);
             if(
                 Char.ToString(filePath[filePath.Length-3])+
                 Char.ToString(filePath[filePath.Length-2])+
@@ -396,16 +421,16 @@ namespace PenroseEngine{
         private Random random = new Random();
         private PictureBox pictureBox1;
         private double[,] rotationalMatrix;
-        private gameObject renderObject;
+        private gameObject[] renderObjects;
         private double scale;
         private TrackBar trackBar1;
         private TrackBar trackBar2;
 
-        public MyForm(double[,] rotationalMatrix, gameObject renderObject,double scale)
+        public MyForm(double[,] rotationalMatrix, gameObject[] renderObjects,double scale)
         {
             //render = new rendererPipeline();
             this.rotationalMatrix = rotationalMatrix;
-            this.renderObject = renderObject;
+            this.renderObjects = renderObjects;
             this.scale = scale;
             //InitializeComponent();
             pictureBox1 = new PictureBox();
@@ -423,28 +448,30 @@ namespace PenroseEngine{
         {
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             // Create a new TrackBar control
-            trackBar1 = new TrackBar();
-
-            // Set the properties of the TrackBar
-            trackBar1.Minimum = -180;
-            trackBar1.Maximum = 180;
-            trackBar1.Value = 0; // Initial value
-            trackBar1.TickStyle = TickStyle.TopLeft;
-            trackBar1.TickFrequency = 10;
-            trackBar1.Width = 200;
-            trackBar1.Location = new System.Drawing.Point(0, 400);
+            trackBar1 = new TrackBar
+            {
+                // Set the properties of the TrackBar
+                Minimum = -180,
+                Maximum = 180,
+                Value = 0, // Initial value
+                TickStyle = TickStyle.TopLeft,
+                TickFrequency = 10,
+                Width = 200,
+                Location = new System.Drawing.Point(0, 400)
+            };
 
             // Create a new TrackBar control
-            trackBar2 = new TrackBar();
-
-            // Set the properties of the TrackBar
-            trackBar2.Minimum = -180;
-            trackBar2.Maximum = 180;
-            trackBar2.Value = 0; // Initial value
-            trackBar2.TickStyle = TickStyle.TopLeft;
-            trackBar2.TickFrequency = 10;
-            trackBar2.Width = 200;
-            trackBar2.Location = new System.Drawing.Point(200, 400);
+            trackBar2 = new TrackBar
+            {
+                // Set the properties of the TrackBar
+                Minimum = -180,
+                Maximum = 180,
+                Value = 0, // Initial value
+                TickStyle = TickStyle.TopLeft,
+                TickFrequency = 10,
+                Width = 200,
+                Location = new System.Drawing.Point(200, 400)
+            };
 
             // Add the TrackBar to the form's Controls collection
             Controls.Add(trackBar1);
@@ -492,7 +519,8 @@ namespace PenroseEngine{
                 rendererPipeline.triangleDensity = .1;
             }
             rotationalMatrix = rendererPipeline.rotationMatrixGenerator(trackBar1.Value,trackBar2.Value);
-            rendererPipeline.rotateTriangles(rotationalMatrix,renderObject, scale);
+            foreach(gameObject item in renderObjects)
+            rendererPipeline.rotateTriangles(rotationalMatrix,item, scale);
             Image frame = rendererPipeline.renderToScreen(rendererPipeline.screenInfo);
 
             // Update the PictureBox with the edited image
