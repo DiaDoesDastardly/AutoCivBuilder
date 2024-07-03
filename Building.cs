@@ -15,6 +15,8 @@ public class Building{
     public Boolean buildOnOutskirts;
     //What is the building's rank (more important the higher the rank)
     public int buildingRank;
+    //What model does the building use
+    public string model;
 
     //------------------------
 
@@ -36,6 +38,7 @@ public class Building{
     }
     public Building(
             String name, 
+            String model,
             int buildingRank, 
             int popHousing, 
             int employeeCount, 
@@ -53,91 +56,10 @@ public class Building{
         emptyTile = false;
         this.buildOnOutskirts = buildOnOutskirts;
     }
-    public static Building prefabFarm(int buildingLevel){
-        String[] upgradeNames = new String[]{
-            "Berry Bush",
-            "Basic Farm",
-            "Farm",
-            "Factory Farm"
-        };
-        return new Building( upgradeNames[buildingLevel], // Building Name
-            0, // Building rank
-            0, // Pop housing
-            4*(buildingLevel+1), // Workers needed
-            //What resources are needed to build and how many per turn
-            new Resources[]{
-                new Resources("Wood",-10*buildingLevel),
-                new Resources("Stone",-10*buildingLevel),
-                new Resources("Food",0,10*(buildingLevel+1)*(buildingLevel+1))
-            },
-            false, //Needs neighbors?
-            true //Build on edge of map?
-        );
-    }
-    public static Building prefabLumber(int buildingLevel){
-        String[] upgradeNames = new String[]{
-            "Stick Gatherers",
-            "Lumberjack hut",
-            "Log Mill",
-            "Logging Company"
-        };
-        return new Building( upgradeNames[buildingLevel], // Building Name
-            0, // Building rank
-            0, // Pop housing
-            2*(buildingLevel+1), // Workers needed
-            //What resources are needed to build and how many per turn
-            new Resources[]{
-                new Resources("Wood",0,2*(buildingLevel+1)),
-                new Resources("Stone",-10*buildingLevel),
-            },
-            false, //Needs neighbors?
-            true //Build on edge of map?
-        );
-    }
-    public static Building prefabMine(int buildingLevel){
-        String[] upgradeNames = new String[]{
-            "Stone Gatherers",
-            "Stone Mine",
-            "Stone Quarry",
-            "Mountain Digger"
-        };
-        return new Building( upgradeNames[buildingLevel], // Building Name
-            0, // Building rank
-            0, // Pop housing
-            2*(buildingLevel+1), // Workers needed
-            //What resources are needed to build and how many per turn
-            new Resources[]{
-                new Resources("Wood",-10*buildingLevel),
-                new Resources("Stone",0,2*(buildingLevel+1)),
-                new Resources("Coal", 0, 2*(buildingLevel+1))
-            },
-            false, //Needs neighbors?
-            true //Build on edge of map?
-        );
-    }
-    public static Building prefabHouse(int buildingLevel){
-        String[] upgradeNames = new String[]{
-            "Small hut",
-            "Wooden House",
-            "Townhouse",
-            "Apartment Complex"
-        };
-        return new Building( upgradeNames[buildingLevel], // Building Name
-            5*(buildingLevel+1), // Building rank
-            10*(buildingLevel+1)*(buildingLevel+1), // Pop housing
-            0, // Workers needed
-            //What resources are needed to build and how many per turn
-            new Resources[]{
-                new Resources("Wood",-12*(buildingLevel+1)),
-                new Resources("Stone",-12*(buildingLevel+1)),
-            },
-            true, //Needs neighbors?
-            false //Build on edge of map?
-        );
-    }
     public Building buildSelf(){
         return new Building(
             name,
+            model,
             buildingRank,
             popHousing,
             employeeCount,
@@ -173,6 +95,7 @@ public class upgradableBuilding : Building{
 
     public upgradableBuilding(
             String buildingTypeName,
+            String model,
             String[] upgradeNames,
             int buildingRank,
             int popHousing,
@@ -182,6 +105,7 @@ public class upgradableBuilding : Building{
             Boolean buildOnOutskirts
         ){
         this.upgradeNames = upgradeNames;
+        this.model = model;
         name = buildingTypeName;
         this.buildingRank = buildingRank;
         this.popHousing = popHousing;
@@ -211,6 +135,7 @@ public class upgradableBuilding : Building{
 
         return new Building(
             upgradeNames[buildLevel],
+            model,
             buildingRank * (buildLevel+1),
             popHousing * (buildLevel+1),
             employeeCount,

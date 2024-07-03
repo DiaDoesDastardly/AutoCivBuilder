@@ -1,0 +1,15 @@
+c:\Users\Charley Dodgion\Documents\AutoCivBuilder\obj\Debug\net8.0-windows\AutoCivBuilder.GeneratedMSBuildEditorConfig.editorconfig
+c:\Users\Charley Dodgion\Documents\AutoCivBuilder\obj\Debug\net8.0-windows\AutoCivBuilder.AssemblyInfoInputs.cache
+c:\Users\Charley Dodgion\Documents\AutoCivBuilder\obj\Debug\net8.0-windows\AutoCivBuilder.AssemblyInfo.cs
+c:\Users\Charley Dodgion\Documents\AutoCivBuilder\obj\Debug\net8.0-windows\AutoCivBuilder.csproj.CoreCompileInputs.cache
+c:\Users\Charley Dodgion\Documents\AutoCivBuilder\obj\Debug\net8.0-windows\AutoCivBuilder.sourcelink.json
+c:\Users\Charley Dodgion\Documents\AutoCivBuilder\bin\Debug\net8.0-windows\AutoCivBuilder.exe
+C:\Users\Charley Dodgion\Documents\AutoCivBuilder\bin\Debug\net8.0-windows\AutoCivBuilder.deps.json
+C:\Users\Charley Dodgion\Documents\AutoCivBuilder\bin\Debug\net8.0-windows\AutoCivBuilder.runtimeconfig.json
+c:\Users\Charley Dodgion\Documents\AutoCivBuilder\bin\Debug\net8.0-windows\AutoCivBuilder.dll
+c:\Users\Charley Dodgion\Documents\AutoCivBuilder\bin\Debug\net8.0-windows\AutoCivBuilder.pdb
+c:\Users\Charley Dodgion\Documents\AutoCivBuilder\obj\Debug\net8.0-windows\AutoCivBuilder.dll
+c:\Users\Charley Dodgion\Documents\AutoCivBuilder\obj\Debug\net8.0-windows\refint\AutoCivBuilder.dll
+c:\Users\Charley Dodgion\Documents\AutoCivBuilder\obj\Debug\net8.0-windows\AutoCivBuilder.pdb
+C:\Users\Charley Dodgion\Documents\AutoCivBuilder\obj\Debug\net8.0-windows\AutoCivBuilder.genruntimeconfig.cache
+C:\Users\Charley Dodgion\Documents\AutoCivBuilder\obj\Debug\net8.0-windows\ref\AutoCivBuilder.dll
