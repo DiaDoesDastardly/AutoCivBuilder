@@ -8,7 +8,6 @@ using System.Numerics;
 using System.IO.Compression;
 
 namespace PenroseEngine{
-    
     public class rendererPipeline
     {
         public static int xSize = 400;
