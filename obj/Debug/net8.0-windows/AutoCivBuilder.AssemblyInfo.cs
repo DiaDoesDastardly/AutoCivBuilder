@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("AutoCivBuilder")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e90e4baea34dce48a44db321de714103420af82a")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2e57426bb1110c2e3e625588427ff9e965bbafb6")]
 [assembly: System.Reflection.AssemblyProductAttribute("AutoCivBuilder")]
 [assembly: System.Reflection.AssemblyTitleAttribute("AutoCivBuilder")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

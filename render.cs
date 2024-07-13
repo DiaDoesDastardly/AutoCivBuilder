@@ -6,6 +6,8 @@ using System.Windows.Forms;
 using System.Collections.Generic;
 using System.Numerics;
 using System.IO.Compression;
+using System.Reflection.Metadata.Ecma335;
+using System.Drawing.Drawing2D;
 
 namespace PenroseEngine{
     public class rendererPipeline
@@ -64,11 +66,14 @@ namespace PenroseEngine{
             }
             */
             double[] tempPoint = new double[]{0.0,0.0,0.0};
-            double[] deltaAB = new double[]{0.0,0.0,0.0};
-            double[] deltaAC = new double[]{0.0,0.0,0.0};
+            vector3 deltaAB;
+            vector3 deltaAC;
             double[] targetPoint = new double[]{0.0,0.0,0.0};
             double distAB = 0.0;
             double distAC = 0.0;
+            rowComponent lineData;
+            int lowestY = -1;
+            int highestY = -1;
             //Rotating all of the points of the object by the rotational matrix
             //For now the offset will be {0,0,0}
 
@@ -156,20 +161,19 @@ namespace PenroseEngine{
             */
             for(int index = 0; index < renderableObject.triangles.Length; index++){
                 //Finding the deltaAB and deltaAC for this triangle 
-                deltaAB = new double[]{
-                    vertexHolder[renderableObject.triangles[index][1]].x-vertexHolder[renderableObject.triangles[index][0]].x,
-                    vertexHolder[renderableObject.triangles[index][1]].y-vertexHolder[renderableObject.triangles[index][0]].y,
-                    vertexHolder[renderableObject.triangles[index][1]].z-vertexHolder[renderableObject.triangles[index][0]].z,
-                };
-                deltaAC = new double[]{
-                    vertexHolder[renderableObject.triangles[index][2]].x-vertexHolder[renderableObject.triangles[index][0]].x,
-                    vertexHolder[renderableObject.triangles[index][2]].y-vertexHolder[renderableObject.triangles[index][0]].y,
-                    vertexHolder[renderableObject.triangles[index][2]].z-vertexHolder[renderableObject.triangles[index][0]].z,
-                };
+                deltaAB = vector3.subtract(
+                    vertexHolder[renderableObject.triangles[index][1]], 
+                    vertexHolder[renderableObject.triangles[index][0]]
+                );
+                deltaAC = vector3.subtract(
+                    vertexHolder[renderableObject.triangles[index][1]], 
+                    vertexHolder[renderableObject.triangles[index][2]]
+                );
                 //Doing backface culling at this step
-                if(deltaAB[0]*deltaAC[1] - deltaAC[0]*deltaAB[1] < 0){
+                if(deltaAB.x*deltaAC.y - deltaAC.x*deltaAB.y < 0){
                     continue;
                 }
+
                 drawLine(
                     vertexHolder[renderableObject.triangles[index][0]],
                     vertexHolder[renderableObject.triangles[index][1]]
@@ -182,6 +186,68 @@ namespace PenroseEngine{
                     vertexHolder[renderableObject.triangles[index][0]],
                     vertexHolder[renderableObject.triangles[index][2]]
                 );
+
+                //Please rewrite
+                //This code finds the highest and lowest y on the triangle
+                lowestY = -1;
+                highestY = -1;
+                if(vertexHolder[renderableObject.triangles[index][0]].y+ySize/2 > 0){
+                    highestY = (int)vertexHolder[renderableObject.triangles[index][0]].y+ySize/2;
+                    lowestY = (int)vertexHolder[renderableObject.triangles[index][0]].y+ySize/2;
+                }
+                if(
+                    highestY < vertexHolder[renderableObject.triangles[index][1]].y+ySize/2 &&
+                    highestY != -1
+                ) 
+                highestY = (int)vertexHolder[renderableObject.triangles[index][1]].y+ySize/2;
+                if(
+                    lowestY > vertexHolder[renderableObject.triangles[index][1]].y+ySize/2 &&
+                    lowestY != -1
+                ) 
+                lowestY = (int)vertexHolder[renderableObject.triangles[index][1]].y+ySize/2;
+
+                if(
+                    highestY < vertexHolder[renderableObject.triangles[index][2]].y+ySize/2 &&
+                    highestY != -1
+                ) 
+                highestY = (int)vertexHolder[renderableObject.triangles[index][2]].y+ySize/2;
+                if(
+                    lowestY > vertexHolder[renderableObject.triangles[index][2]].y+ySize/2 &&
+                    lowestY != -1
+                ) 
+                lowestY = (int)vertexHolder[renderableObject.triangles[index][2]].y+ySize/2;
+
+                if(
+                    lowestY < 0 || 
+                    highestY < 0 ||
+                    lowestY > ySize || 
+                    highestY > ySize ) continue;
+                for(int row = lowestY; row < highestY; row++){
+                    lineData = getRowFromTriangle(
+                        vector3.add(vertexHolder[renderableObject.triangles[index][0]], new (xSize/2,ySize/2,0)),
+                        vector3.add(vertexHolder[renderableObject.triangles[index][1]], new (xSize/2,ySize/2,0)),
+                        vector3.add(vertexHolder[renderableObject.triangles[index][2]], new (xSize/2,ySize/2,0)),
+                        row
+                    );
+                    
+                    if(lineData.rowStart >= 0 && lineData.rowEnd >= 0)
+                    for(int i = 0; i < lineData.rowEnd-lineData.rowStart; i++){
+                        if(
+                            screenInfo[i+lineData.rowStart][row][0] > 
+                            lineData.depthStart + (lineData.depthEnd-lineData.depthStart)*i/(lineData.rowEnd-lineData.rowStart) ||
+                            screenInfo[i+lineData.rowStart][row][1] == frameCounter
+                        ) continue;
+                        screenInfo[i+lineData.rowStart][row] = new double[]{
+                            lineData.depthStart + (lineData.depthEnd-lineData.depthStart)*i/(lineData.rowEnd-lineData.rowStart),
+                            frameCounter,
+                            120,
+                            lineData.iStart + (lineData.iEnd-lineData.iStart)*i/(lineData.rowEnd-lineData.rowStart),
+                            lineData.jStart + (lineData.jEnd-lineData.jStart)*i/(lineData.rowEnd-lineData.rowStart)
+                        };
+                    }
+                }
+                
+
             }
             //returning the screen data
             return screenInfo;
@@ -242,7 +308,157 @@ namespace PenroseEngine{
                 
             }
         }
+        public static rowComponent getRowFromTriangle(
+                vector3 pointA, 
+                vector3 pointB, 
+                vector3 pointC, 
+                int row 
+            ){
+            //This is written badly, I need to rewrite 
 
+            //Please rework this code
+            vector3 deltaB = vector3.subtract(pointB,pointA);
+            vector3 deltaC = vector3.subtract(pointC,pointA);
+            vector3 iIntersectActual = new vector3();
+            vector3 jIntersectActual = new vector3();
+            vector3 iPlusJIntersectActual = new vector3();
+            Boolean iIntersectFound = false;
+            Boolean jIntersectFound = false;
+            Boolean iPlusJIntersectFound = false;
+
+            rowComponent lineData = new rowComponent(){
+                rowStart = -1,
+                rowEnd = -1,
+                iStart = 0,
+                iEnd = 0,
+                jStart = 0,
+                jEnd = 0,
+                triangleID = 0
+            };
+
+            //Where the line intersects with the pure i side of the triangle
+            double iIntersect = -1;
+            //Where the line intersects with the pure j side of the triangle
+            double jIntersect = -1;
+            //Where the line intersects with the i+j side of the triangle
+            double iPlusJIntersect = -1;
+            //Checks are in place to prevent devide by 0 error
+            if(deltaB.y != 0) {
+                iIntersectFound = true;
+                iIntersect =  (row - pointA.y)/deltaB.y;
+                iIntersectActual = vector3.add(
+                    pointA, 
+                    vector3.scale(iIntersect, deltaB)
+                );
+                //rateOfChange = -(deltaC.y/deltaB.y);
+                //If row start has not been interacted with or point.x is less than row start
+                //Then save the point.x as the row start and mark down the i value
+                //Also check the i value to make sure it is between 0 and 1
+                if(
+                    (lineData.rowStart == -1 || iIntersectActual.x < lineData.rowStart) && 
+                    (iIntersect >= 0 && iIntersect < 1)
+                ) {
+                    lineData.rowStart = (int)iIntersectActual.x;
+                    lineData.iStart = iIntersect;
+                    lineData.depthStart = iIntersectActual.z;
+                }
+                //If row end has not been interacted with or point.x is more than row end
+                //Then save the point.x as the row end and mark down the i value
+                //Also check the i value to make sure it is between 0 and 1
+                if(
+                    (lineData.rowEnd == -1 || iIntersectActual.x > lineData.rowEnd) && 
+                    (iIntersect >= 0 && iIntersect < 0)
+                ) {
+                    lineData.rowEnd = (int)iIntersectActual.x;
+                    lineData.iEnd = iIntersect;
+                    lineData.depthEnd = iIntersectActual.z;
+                }
+            }
+            if(deltaC.y != 0){
+                jIntersectFound = true;
+                jIntersect =  (row - pointA.y)/deltaC.y;
+                jIntersectActual = vector3.add(
+                    pointA, 
+                    vector3.scale(jIntersect, deltaC)
+                );
+                //If row start has not been interacted with or point.x is less than row start
+                //Then save the point.x as the row start and mark down the i value
+                //Also check the j value to make sure it is between 0 and 1
+                if(
+                    (lineData.rowStart == -1 || jIntersectActual.x < lineData.rowStart) && 
+                    (jIntersect >= 0 && jIntersect < 1)
+                ) {
+                    lineData.rowStart = (int)jIntersectActual.x;
+                    lineData.jStart = jIntersect;
+                    lineData.depthStart = jIntersectActual.z;
+                }
+                //If row end has not been interacted with or point.x is more than row end
+                //Then save the point.x as the row end and mark down the j value
+                //Also check the j value to make sure it is between 0 and 1
+                if(
+                    (lineData.rowEnd == -1 || jIntersectActual.x > lineData.rowEnd ) && 
+                    (jIntersect >= 0 && jIntersect < 1)
+                ) {
+                    lineData.rowEnd = (int)jIntersectActual.x;
+                    lineData.jEnd = jIntersect;
+                    lineData.depthEnd = jIntersectActual.z;
+                }
+            } 
+            //Gives the i intersect on the i+j = 1 axis
+            //Compute 1 - i to find j
+            if(deltaC.y-deltaB.y  != 0){
+                iPlusJIntersectFound = true;
+                iPlusJIntersect = (row - pointA.y - deltaB.y ) / (deltaC.y-deltaB.y);
+                iPlusJIntersectActual = vector3.add(
+                    pointA, 
+                    vector3.add(
+                        vector3.scale(iPlusJIntersect, deltaB),
+                        vector3.scale(1-iPlusJIntersect, deltaC)
+                    )                    
+                );
+                //If row start has not been interacted with or point.x is less than row start
+                //Then save the point.x as the row start and mark down the i and j values
+                //Also check the i and j values to make sure it they are between 0 and 1
+                if(
+                    (lineData.rowStart == -1 || iPlusJIntersectActual.x < lineData.rowStart) && 
+                    (jIntersect >= 0 && jIntersect < 1) && 
+                    (iIntersect >= 0 && iIntersect < 1)
+                ){
+                    lineData.rowStart = (int)iPlusJIntersectActual.x;
+                    lineData.iStart = iPlusJIntersect;
+                    lineData.jStart = 1-iPlusJIntersect;
+                    lineData.depthStart = iPlusJIntersectActual.z;
+                } 
+                //If row end has not been interacted with or point.x is more than row end
+                //Then save the point.x as the row end and mark down the i and j values
+                //Also check the i and j values to make sure it they are between 0 and 1
+                if(
+                    (lineData.rowEnd == -1 || iPlusJIntersectActual.x > lineData.rowEnd)&& 
+                    (jIntersect >= 0 && jIntersect < 1) && 
+                    (iIntersect >= 0 && iIntersect < 1)
+                ){
+                    lineData.rowEnd = (int)iPlusJIntersectActual.x;
+                    lineData.iEnd = iPlusJIntersect;
+                    lineData.jEnd = 1-iPlusJIntersect;
+                    lineData.depthEnd = iPlusJIntersectActual.z;
+                }
+            } 
+            //If all the deltas are 0 then return
+            if(
+                !iIntersectFound && 
+                !jIntersectFound && 
+                !iPlusJIntersectFound
+            ) return lineData; 
+            
+            if(lineData.rowStart < 0) lineData.rowStart = 0;
+            if(lineData.rowStart > xSize) lineData.rowStart = xSize;
+            if(lineData.rowEnd < 0) lineData.rowEnd = 0;
+            if(lineData.rowEnd > xSize) lineData.rowEnd = xSize;
+            return lineData;
+
+            
+
+        }   
         public static Image renderToScreen(double[][][] screenInfo){
             Bitmap screenImage = new Bitmap(xSize, ySize);
             //Creating the tempColor holder that will be used to color the triangles
@@ -401,6 +617,13 @@ namespace PenroseEngine{
                 first.z - second.z
             );
         }
+        public static vector3 scale(double scale, vector3 first){
+            return new(
+                first.x * scale,
+                first.y * scale,
+                first.z * scale
+            );
+        }
         public void addThis(vector3 first){
             x += first.x;
             y += first.y;
@@ -410,6 +633,30 @@ namespace PenroseEngine{
             x -= first.x;
             y -= first.y;
             z -= first.z;
+        }
+    }
+    public class rowComponent{
+        //Where in the row does our section start
+        public int rowStart;
+        //Where in the row does our section end
+        public int rowEnd;
+        //What is the i value at the start of the section
+        public double iStart;
+        //What is the i value at the end of the section
+        public double iEnd;
+        //What is the j value at the start of the section
+        public double jStart;
+        //What is the j value at the end of the section
+        public double jEnd;
+        //What is the ID of the triangle that this section is from
+        public int triangleID;
+        //What is the depth value at the start of the section
+        public double depthStart;
+        //What is the depth value at the end of the section
+        public double depthEnd;
+
+        public rowComponent(){
+            //Empty Clss
         }
     }
     public partial class MyForm : Form
