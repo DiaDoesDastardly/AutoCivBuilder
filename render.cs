@@ -389,7 +389,7 @@ namespace PenroseEngine{
                 //Also check the i value to make sure it is between 0 and 1
                 if(
                     (lineData.rowEnd == -1 || iIntersectActual.x > lineData.rowEnd) && 
-                    (iIntersect >= 0 && iIntersect < 0)
+                    (iIntersect >= 0 && iIntersect < 1)
                 ) {
                     lineData.rowEnd = (int)iIntersectActual.x;
                     lineData.iEnd = iIntersect;
@@ -437,8 +437,8 @@ namespace PenroseEngine{
                 iPlusJIntersectActual = vector3.add(
                     pointA, 
                     vector3.add(
-                        vector3.scale(iPlusJIntersect, deltaB),
-                        vector3.scale(1-iPlusJIntersect, deltaC)
+                        vector3.scale(iPlusJIntersect, deltaC),
+                        vector3.scale(1-iPlusJIntersect, deltaB)
                     )                    
                 );
                 //If row start has not been interacted with or point.x is less than row start
@@ -487,23 +487,6 @@ namespace PenroseEngine{
             if(lineData.rowStart > xSize) lineData.rowStart = xSize;
             if(lineData.rowEnd < 0) lineData.rowEnd = 0;
             if(lineData.rowEnd > xSize) lineData.rowEnd = xSize;
-            /*
-            Console.WriteLine("i: "+lineData.iStart + " " + lineData.iEnd);
-            Console.WriteLine("j: "+lineData.jStart + " " + lineData.jEnd);
-            //Console.WriteLine("i intercept : "+iIntersect);
-            //Console.WriteLine("j intercept : "+jIntersect);
-            //Console.WriteLine("i+j intercept : "+iPlusJIntersect);
-            Console.WriteLine("Row: "+row);
-            Console.WriteLine("Point A: ("+pointA.x+","+pointA.y+","+pointA.z+")");
-            Console.WriteLine("Point B: ("+pointB.x+","+pointB.y+","+pointB.z+")");
-            Console.WriteLine("Point C: ("+pointC.x+","+pointC.y+","+pointC.z+")");
-            vector3 weh = vector3.add(pointA, vector3.add(vector3.scale(lineData.iStart,deltaB),vector3.scale(lineData.jStart,deltaC)));
-            Console.WriteLine("First point on line: ("+(int)weh.x+","+(int)weh.y+","+weh.z+")");
-            weh = vector3.add(pointA, vector3.add(vector3.scale(lineData.iEnd,deltaB),vector3.scale(lineData.jEnd,deltaC)));
-            Console.WriteLine("Last point on line: ("+(int)weh.x+","+(int)weh.y+","+weh.z+")");
-            Console.WriteLine("Row start/end: "+lineData.rowStart+" "+lineData.rowEnd);
-            Console.WriteLine(" ");
-            */
             return lineData;
 
             

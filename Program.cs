@@ -27,5 +27,5 @@ gameObject[] buildingModels = new gameObject[]{
     new(objectFolder+"cube.obj")
 };
 double[,] rotationMatrix = rendererPipeline.rotationMatrixGenerator(0,0);
-MyForm form = new MyForm(rotationMatrix,buildingModels,100);
+MyForm form = new MyForm(rotationMatrix,buildingModels,25);
 Application.Run(form);
