@@ -12,6 +12,7 @@ while(civ.initTurn()){
 civ.currentGameStats();
 civ.printMap();
 
+/*
 gameObject[] buildingModels = new gameObject[civ.mapSizeX*civ.mapSizeY];
 for(int xPos = 0; xPos < civ.mapSizeX; xPos++)
 for(int yPos = 0; yPos < civ.mapSizeY; yPos++){
@@ -21,6 +22,10 @@ for(int yPos = 0; yPos < civ.mapSizeY; yPos++){
         scale = new vector3(.7, civ.cityMap[xPos,yPos].level+1, .7)        
     };
 }
+*/
+gameObject[] buildingModels = new gameObject[]{
+    new(objectFolder+"cube.obj")
+};
 double[,] rotationMatrix = rendererPipeline.rotationMatrixGenerator(0,0);
-MyForm form = new MyForm(rotationMatrix,buildingModels,25);
+MyForm form = new MyForm(rotationMatrix,buildingModels,100);
 Application.Run(form);

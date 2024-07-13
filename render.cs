@@ -173,7 +173,7 @@ namespace PenroseEngine{
                 if(deltaAB.x*deltaAC.y - deltaAC.x*deltaAB.y < 0){
                     continue;
                 }
-
+                /*
                 drawLine(
                     vertexHolder[renderableObject.triangles[index][0]],
                     vertexHolder[renderableObject.triangles[index][1]]
@@ -186,7 +186,7 @@ namespace PenroseEngine{
                     vertexHolder[renderableObject.triangles[index][0]],
                     vertexHolder[renderableObject.triangles[index][2]]
                 );
-
+                */
                 //Please rewrite
                 //This code finds the highest and lowest y on the triangle
                 lowestY = -1;
@@ -231,21 +231,42 @@ namespace PenroseEngine{
                     );
                     
                     if(lineData.rowStart >= 0 && lineData.rowEnd >= 0)
-                    for(int i = 0; i < lineData.rowEnd-lineData.rowStart; i++){
+                    for(int i = lineData.rowStart; i < lineData.rowEnd; i++){
+
+                        double rateChange = (i-lineData.rowStart)/(lineData.rowEnd-lineData.rowStart);
                         if(
-                            screenInfo[i+lineData.rowStart][row][0] > 
-                            lineData.depthStart + (lineData.depthEnd-lineData.depthStart)*i/(lineData.rowEnd-lineData.rowStart) ||
-                            screenInfo[i+lineData.rowStart][row][1] == frameCounter
+                            screenInfo[i][row][0] > 
+                            lineData.depthStart + (lineData.depthEnd-lineData.depthStart)*rateChange &&
+                            screenInfo[i][row][1] == frameCounter
                         ) continue;
-                        screenInfo[i+lineData.rowStart][row] = new double[]{
-                            lineData.depthStart + (lineData.depthEnd-lineData.depthStart)*i/(lineData.rowEnd-lineData.rowStart),
+                        int colorData = 0;
+                        if(i == lineData.rowStart || i==lineData.rowEnd-1) colorData = 0;
+                        else colorData = 
+                        (int)(40 * (lineData.iStart + (lineData.iEnd-lineData.iStart)*rateChange)+
+                              40 * (lineData.jStart + (lineData.jEnd-lineData.jStart)*rateChange)+
+                              160);
+                        //Console.WriteLine(lineData.rowStart);
+                        screenInfo[i][row] = new double[]{
+                            lineData.depthStart + (lineData.depthEnd-lineData.depthStart)*rateChange,
                             frameCounter,
-                            120,
-                            lineData.iStart + (lineData.iEnd-lineData.iStart)*i/(lineData.rowEnd-lineData.rowStart),
-                            lineData.jStart + (lineData.jEnd-lineData.jStart)*i/(lineData.rowEnd-lineData.rowStart)
+                            colorData,
+                            lineData.iStart + (lineData.iEnd-lineData.iStart)*rateChange,
+                            lineData.jStart + (lineData.jEnd-lineData.jStart)*rateChange
                         };
                     }
+                    /*
+                    Console.WriteLine(
+                        "Row: "+row +
+                        " Start: "+ lineData.rowStart +
+                        " End "+lineData.rowEnd + 
+                        " i Start: "+lineData.iStart +
+                        " i End: "+lineData.iEnd+
+                        " j Start: "+lineData.jStart +
+                        " j End: "+lineData.jEnd
+                    );
+                    */
                 }
+                //Console.WriteLine(" ");
                 
 
             }
@@ -360,6 +381,7 @@ namespace PenroseEngine{
                 ) {
                     lineData.rowStart = (int)iIntersectActual.x;
                     lineData.iStart = iIntersect;
+                    lineData.jStart = 0;
                     lineData.depthStart = iIntersectActual.z;
                 }
                 //If row end has not been interacted with or point.x is more than row end
@@ -371,6 +393,7 @@ namespace PenroseEngine{
                 ) {
                     lineData.rowEnd = (int)iIntersectActual.x;
                     lineData.iEnd = iIntersect;
+                    lineData.jEnd = 0;
                     lineData.depthEnd = iIntersectActual.z;
                 }
             }
@@ -389,6 +412,7 @@ namespace PenroseEngine{
                     (jIntersect >= 0 && jIntersect < 1)
                 ) {
                     lineData.rowStart = (int)jIntersectActual.x;
+                    lineData.iStart = 0;
                     lineData.jStart = jIntersect;
                     lineData.depthStart = jIntersectActual.z;
                 }
@@ -400,6 +424,7 @@ namespace PenroseEngine{
                     (jIntersect >= 0 && jIntersect < 1)
                 ) {
                     lineData.rowEnd = (int)jIntersectActual.x;
+                    lineData.iEnd = 0;
                     lineData.jEnd = jIntersect;
                     lineData.depthEnd = jIntersectActual.z;
                 }
@@ -421,8 +446,8 @@ namespace PenroseEngine{
                 //Also check the i and j values to make sure it they are between 0 and 1
                 if(
                     (lineData.rowStart == -1 || iPlusJIntersectActual.x < lineData.rowStart) && 
-                    (jIntersect >= 0 && jIntersect < 1) && 
-                    (iIntersect >= 0 && iIntersect < 1)
+                    (1-iPlusJIntersect >= 0 && 1-iPlusJIntersect < 1) && 
+                    (iPlusJIntersect >= 0 && iPlusJIntersect < 1)
                 ){
                     lineData.rowStart = (int)iPlusJIntersectActual.x;
                     lineData.iStart = iPlusJIntersect;
@@ -434,8 +459,8 @@ namespace PenroseEngine{
                 //Also check the i and j values to make sure it they are between 0 and 1
                 if(
                     (lineData.rowEnd == -1 || iPlusJIntersectActual.x > lineData.rowEnd)&& 
-                    (jIntersect >= 0 && jIntersect < 1) && 
-                    (iIntersect >= 0 && iIntersect < 1)
+                    (1-iPlusJIntersect >= 0 && 1-iPlusJIntersect < 1) && 
+                    (iPlusJIntersect >= 0 && iPlusJIntersect < 1)
                 ){
                     lineData.rowEnd = (int)iPlusJIntersectActual.x;
                     lineData.iEnd = iPlusJIntersect;
@@ -448,12 +473,37 @@ namespace PenroseEngine{
                 !iIntersectFound && 
                 !jIntersectFound && 
                 !iPlusJIntersectFound
-            ) return lineData; 
+            ) return new rowComponent(){
+                rowStart = -1,
+                rowEnd = -1,
+                iStart = 0,
+                iEnd = 0,
+                jStart = 0,
+                jEnd = 0,
+                triangleID = 0
+            };
             
             if(lineData.rowStart < 0) lineData.rowStart = 0;
             if(lineData.rowStart > xSize) lineData.rowStart = xSize;
             if(lineData.rowEnd < 0) lineData.rowEnd = 0;
             if(lineData.rowEnd > xSize) lineData.rowEnd = xSize;
+            /*
+            Console.WriteLine("i: "+lineData.iStart + " " + lineData.iEnd);
+            Console.WriteLine("j: "+lineData.jStart + " " + lineData.jEnd);
+            //Console.WriteLine("i intercept : "+iIntersect);
+            //Console.WriteLine("j intercept : "+jIntersect);
+            //Console.WriteLine("i+j intercept : "+iPlusJIntersect);
+            Console.WriteLine("Row: "+row);
+            Console.WriteLine("Point A: ("+pointA.x+","+pointA.y+","+pointA.z+")");
+            Console.WriteLine("Point B: ("+pointB.x+","+pointB.y+","+pointB.z+")");
+            Console.WriteLine("Point C: ("+pointC.x+","+pointC.y+","+pointC.z+")");
+            vector3 weh = vector3.add(pointA, vector3.add(vector3.scale(lineData.iStart,deltaB),vector3.scale(lineData.jStart,deltaC)));
+            Console.WriteLine("First point on line: ("+(int)weh.x+","+(int)weh.y+","+weh.z+")");
+            weh = vector3.add(pointA, vector3.add(vector3.scale(lineData.iEnd,deltaB),vector3.scale(lineData.jEnd,deltaC)));
+            Console.WriteLine("Last point on line: ("+(int)weh.x+","+(int)weh.y+","+weh.z+")");
+            Console.WriteLine("Row start/end: "+lineData.rowStart+" "+lineData.rowEnd);
+            Console.WriteLine(" ");
+            */
             return lineData;
 
             
