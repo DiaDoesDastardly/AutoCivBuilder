@@ -235,7 +235,7 @@ namespace PenroseEngine{
 
                         double rateChange = (i-lineData.rowStart)/(lineData.rowEnd-lineData.rowStart);
                         if(
-                            screenInfo[i][row][0] > 
+                            screenInfo[i][row][0] < 
                             lineData.depthStart + (lineData.depthEnd-lineData.depthStart)*rateChange &&
                             screenInfo[i][row][1] == frameCounter
                         ) continue;
