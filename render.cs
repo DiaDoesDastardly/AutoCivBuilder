@@ -72,6 +72,7 @@ namespace PenroseEngine{
             double distAB = 0.0;
             double distAC = 0.0;
             rowComponent lineData;
+            List<rowComponent> linesData = new List<rowComponent>();
             int lowestY = -1;
             int highestY = -1;
             //Rotating all of the points of the object by the rotational matrix
@@ -92,74 +93,27 @@ namespace PenroseEngine{
                 vertexHolder[index].z = tempPoint[2];
             }
 
-            //Rendering the rotated triangles into the screen data 
-            /*
             for(int index = 0; index < renderableObject.triangles.Length; index++){
-                //Finding the deltaAB and deltaAC for this triangle 
-                deltaAB = new double[]{
-                    vertexHolder[renderableObject.triangles[index][1]].x-vertexHolder[renderableObject.triangles[index][0]].x,
-                    vertexHolder[renderableObject.triangles[index][1]].y-vertexHolder[renderableObject.triangles[index][0]].y,
-                    vertexHolder[renderableObject.triangles[index][1]].z-vertexHolder[renderableObject.triangles[index][0]].z,
-                };
-                deltaAC = new double[]{
-                    vertexHolder[renderableObject.triangles[index][2]].x-vertexHolder[renderableObject.triangles[index][0]].x,
-                    vertexHolder[renderableObject.triangles[index][2]].y-vertexHolder[renderableObject.triangles[index][0]].y,
-                    vertexHolder[renderableObject.triangles[index][2]].z-vertexHolder[renderableObject.triangles[index][0]].z,
-                };
-                //Doing backface culling at this step
-                if(deltaAB[0]*deltaAC[1] - deltaAC[0]*deltaAB[1] < 0){
-                    continue;
-                }
-                //Finding the distance from point A and point B as well as from point A and point C
-                distAB = Math.Sqrt(
-                    deltaAB[0]*deltaAB[0]+
-                    deltaAB[1]*deltaAB[1]+
-                    deltaAB[2]*deltaAB[2]
-                );
-                distAC = Math.Sqrt(
-                    deltaAC[0]*deltaAC[0]+
-                    deltaAC[1]*deltaAC[1]+
-                    deltaAC[2]*deltaAC[2]
-                );
-                //Going through all of the pixels in the triangle (using the i+j <= 1 rule)
-                for(double i = 0; i <= 1; i += 1/(triangleDensity*distAB)){                    
-                    for(double j = 0; j+i <= 1; j += 1/(triangleDensity*distAC)){
-                        //Finding the point in 3d space
-                        targetPoint = new double[]{
-                            vertexHolder[renderableObject.triangles[index][0]].x+(xSize/2)+i*deltaAB[0]+j*deltaAC[0],
-                            vertexHolder[renderableObject.triangles[index][0]].y+(ySize/2)+i*deltaAB[1]+j*deltaAC[1],
-                            0
-                        };
-                        //Making sure the point is on the screen
-                        if(
-                            targetPoint[0]>0 && 
-                            xSize>targetPoint[0] && 
-                            targetPoint[1]>0 && 
-                            ySize>targetPoint[1]
-                        ){
-                            //Calculating depth only if pixel is on screen
-                            targetPoint[2] = vertexHolder[renderableObject.triangles[index][0]].z+i*deltaAB[2]+j*deltaAC[2];
-                            //Seeing if this pixel has been interacted and if depth is lower than current value
-                            if(
-                                screenInfo[(int)(screenResolution*targetPoint[0])][(int)(screenResolution*targetPoint[1])][1] != frameCounter || 
-                                screenInfo[(int)(screenResolution*targetPoint[0])][(int)(screenResolution*targetPoint[1])][0] < targetPoint[2]
-                            ){
-                                //Setting the pixel to interacted and the depth value to the targetPoint's 
-                                screenInfo[(int)(screenResolution*targetPoint[0])][(int)(screenResolution*targetPoint[1])] = new double[]{
-                                    targetPoint[2],
-                                    frameCounter,
-                                    (int)(120*i+120*j),
-                                    i,
-                                    j
-                                };
-                            }
-                        }
-                    }
-                }
-                
-            }
-            */
-            for(int index = 0; index < renderableObject.triangles.Length; index++){
+                //Checking that all points are on screen
+                //Need to find faster way for this
+                /*
+                if(
+                    (vertexHolder[renderableObject.triangles[index][0]].x+xSize/2 < 0 ||
+                    vertexHolder[renderableObject.triangles[index][0]].x+xSize/2 >= xSize) &&
+                    (vertexHolder[renderableObject.triangles[index][0]].y+ySize/2 < 0 ||
+                    vertexHolder[renderableObject.triangles[index][0]].y+ySize/2 >= ySize) &&
+
+                    (vertexHolder[renderableObject.triangles[index][1]].x+xSize/2 < 0 ||
+                    vertexHolder[renderableObject.triangles[index][1]].x+xSize/2 >= xSize) &&
+                    (vertexHolder[renderableObject.triangles[index][1]].y+ySize/2 < 0 ||
+                    vertexHolder[renderableObject.triangles[index][1]].y+ySize/2 >= ySize) &&
+
+                    (vertexHolder[renderableObject.triangles[index][2]].x+xSize/2 < 0 ||
+                    vertexHolder[renderableObject.triangles[index][2]].x+xSize/2 >= xSize) &&
+                    (vertexHolder[renderableObject.triangles[index][2]].y+ySize/2 < 0 ||
+                    vertexHolder[renderableObject.triangles[index][2]].y+ySize/2 >= ySize)
+                ) continue;
+                */
                 //Finding the deltaAB and deltaAC for this triangle 
                 deltaAB = vector3.subtract(
                     vertexHolder[renderableObject.triangles[index][1]], 
@@ -216,35 +170,37 @@ namespace PenroseEngine{
                     lowestY != -1
                 ) 
                 lowestY = (int)vertexHolder[renderableObject.triangles[index][2]].y+ySize/2;
-
+                /*
                 if(
                     lowestY < 0 || 
                     highestY < 0 ||
                     lowestY > ySize || 
                     highestY > ySize ) continue;
-                for(int row = lowestY; row < highestY; row++){
+                */
+                for(int row = lowestY-1; row < highestY+1; row++){
+                    if(row < 0 || row >= ySize)continue;
                     lineData = getRowFromTriangle(
                         vector3.add(vertexHolder[renderableObject.triangles[index][0]], new (xSize/2,ySize/2,0)),
                         vector3.add(vertexHolder[renderableObject.triangles[index][1]], new (xSize/2,ySize/2,0)),
                         vector3.add(vertexHolder[renderableObject.triangles[index][2]], new (xSize/2,ySize/2,0)),
                         row
                     );
-                    
+                    linesData.Add(lineData);
                     if(lineData.rowStart >= 0 && lineData.rowEnd >= 0)
                     for(int i = lineData.rowStart; i < lineData.rowEnd; i++){
-
+                        if(row >= ySize || row < 0) continue;
                         double rateChange = (i-lineData.rowStart)/(lineData.rowEnd-lineData.rowStart);
                         if(
-                            screenInfo[i][row][0] > 
+                            screenInfo[i][row][0] < 
                             lineData.depthStart + (lineData.depthEnd-lineData.depthStart)*rateChange &&
                             screenInfo[i][row][1] == frameCounter
                         ) continue;
-                        int colorData = 0;
-                        if(i == lineData.rowStart || i==lineData.rowEnd-1) colorData = 0;
-                        else colorData = 
-                        (int)(40 * (lineData.iStart + (lineData.iEnd-lineData.iStart)*rateChange)+
-                              40 * (lineData.jStart + (lineData.jEnd-lineData.jStart)*rateChange)+
-                              160);
+                        int colorData;
+                        //if(i == lineData.rowStart || i==lineData.rowEnd-1) colorData = 0;
+                        colorData = 
+                        (int)(127 * (lineData.iStart + (lineData.iEnd-lineData.iStart)*rateChange)+
+                              127 * (lineData.jStart + (lineData.jEnd-lineData.jStart)*rateChange)+
+                              0);
                         //Console.WriteLine(lineData.rowStart);
                         screenInfo[i][row] = new double[]{
                             lineData.depthStart + (lineData.depthEnd-lineData.depthStart)*rateChange,
@@ -473,7 +429,7 @@ namespace PenroseEngine{
                 !iIntersectFound && 
                 !jIntersectFound && 
                 !iPlusJIntersectFound
-            ) return new rowComponent(){
+            )return new rowComponent(){
                 rowStart = -1,
                 rowEnd = -1,
                 iStart = 0,
@@ -687,9 +643,48 @@ namespace PenroseEngine{
         public double depthStart;
         //What is the depth value at the end of the section
         public double depthEnd;
-
         public rowComponent(){
-            //Empty Clss
+            //Empty Class
+        }
+        public rowComponent(rowComponent target){
+            //This method is for copying other rowComponents
+            rowStart = target.rowStart;
+            rowEnd = target.rowEnd;
+            iStart = target.iStart;
+            iEnd = target.iEnd;
+            jStart = target.jStart;
+            jEnd = target.jEnd;
+            triangleID = target.triangleID;
+            depthStart = target.depthStart;
+            depthEnd = target.depthEnd;
+        }
+    }
+    public class lineContainer{
+        public int lineStart;
+        public int lineEnd;
+        public List<rowComponent> lines;
+        public lineContainer(){
+            //Empty Case
+        }
+
+        public Boolean checkIntersection(rowComponent line){
+            //We create a temp line for manipulation but with no data
+            rowComponent tempLine;
+            //We check to make sure that either end of our line falls within our lineContainer
+            if(lineStart <= line.rowStart || lineEnd >= line.rowEnd){
+                tempLine = new(line);
+                foreach(rowComponent containedLine in lines){
+                    //Checking if the line start is within the containedLine
+                    if(
+                        containedLine.rowStart <= line.rowStart && 
+                        containedLine.rowEnd >= line.rowStart
+                    ){
+                        
+                    }
+                }
+                return true;
+            }
+            return false;
         }
     }
     public partial class MyForm : Form
@@ -704,6 +699,9 @@ namespace PenroseEngine{
         private double scale;
         private TrackBar trackBar1;
         private TrackBar trackBar2;
+        private TrackBar trackBar3;
+
+        private long lastMiliCheck;
 
         public MyForm(double[,] rotationalMatrix, gameObject[] renderObjects,double scale)
         {
@@ -711,6 +709,7 @@ namespace PenroseEngine{
             this.rotationalMatrix = rotationalMatrix;
             this.renderObjects = renderObjects;
             this.scale = scale;
+            lastMiliCheck = DateTime.Now.Ticks/TimeSpan.TicksPerMillisecond;
             //InitializeComponent();
             pictureBox1 = new PictureBox();
             //pictureBox1.SizeMode = PictureBoxSizeMode.AutoSize;
@@ -752,9 +751,21 @@ namespace PenroseEngine{
                 Location = new System.Drawing.Point(200, 400)
             };
 
+            trackBar3 = new TrackBar
+            {
+                // Set the properties of the TrackBar
+                Minimum = 1,
+                Maximum = 100,
+                Value = 1, // Initial value
+                TickStyle = TickStyle.TopLeft,
+                TickFrequency = 10,
+                Width = 200,
+                Location = new System.Drawing.Point(0, 440)
+            };
             // Add the TrackBar to the form's Controls collection
             Controls.Add(trackBar1);
             Controls.Add(trackBar2);
+            Controls.Add(trackBar3);
 
             // PictureBox
             this.pictureBox1.Location = new System.Drawing.Point(0, 0);
@@ -765,7 +776,7 @@ namespace PenroseEngine{
             
             // Form
             this.Controls.Add(this.pictureBox1);
-            this.ClientSize = new System.Drawing.Size(400, 440);
+            this.ClientSize = new System.Drawing.Size(400, 480);
             this.Name = "Form1";
             this.Text = "Form1";
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
@@ -785,18 +796,26 @@ namespace PenroseEngine{
         {
             // Call the function to generate the bitmap
             //Bitmap originalImage = GenerateBitmap();
-
+            //long weh = DateTime.Now.Ticks;
             // Call the edit function
             //Bitmap editedImage = EditPicture(originalImage);
             //renderObject.position.y += 0.001;
             rendererPipeline.frameCounter += 1;
-            if(rendererPipeline.frameCounter >= 60){
+            if(DateTime.Now.Ticks/TimeSpan.TicksPerMillisecond - lastMiliCheck > 1000){
+                Console.WriteLine(rendererPipeline.frameCounter);
+                lastMiliCheck = DateTime.Now.Ticks/TimeSpan.TicksPerMillisecond;
                 rendererPipeline.frameCounter = 1;
             }
+            /*
+            if(rendererPipeline.frameCounter >= 60){                
+                rendererPipeline.frameCounter = 1;
+                
+            }*/
             rendererPipeline.triangleDensity += 0.001;
             if(rendererPipeline.triangleDensity >= 1.5){
                 rendererPipeline.triangleDensity = .1;
             }
+            scale = trackBar3.Value;
             rotationalMatrix = rendererPipeline.rotationMatrixGenerator(trackBar1.Value,trackBar2.Value);
             foreach(gameObject item in renderObjects)
             rendererPipeline.rotateTriangles(rotationalMatrix,item, scale);

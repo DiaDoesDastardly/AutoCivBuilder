@@ -22,11 +22,12 @@ for(int yPos = 0; yPos < civ.mapSizeY; yPos++){
         scale = new vector3(.7, civ.cityMap[xPos,yPos].level+1, .7)        
     };
 }
+
 /*
 gameObject[] buildingModels = new gameObject[]{
-    new(objectFolder+"cube.obj")
+    new(objectFolder+"monkey.obj")
 };
 */
 double[,] rotationMatrix = rendererPipeline.rotationMatrixGenerator(0,0);
-MyForm form = new MyForm(rotationMatrix,buildingModels,10);
+MyForm form = new MyForm(rotationMatrix,buildingModels,100);
 Application.Run(form);
