@@ -8,6 +8,7 @@ using System.Numerics;
 using System.IO.Compression;
 using System.Reflection.Metadata.Ecma335;
 using System.Drawing.Drawing2D;
+using System.Diagnostics.Eventing.Reader;
 
 namespace PenroseEngine{
     public class rendererPipeline
@@ -120,27 +121,13 @@ namespace PenroseEngine{
                     vertexHolder[renderableObject.triangles[index][0]]
                 );
                 deltaAC = vector3.subtract(
-                    vertexHolder[renderableObject.triangles[index][1]], 
-                    vertexHolder[renderableObject.triangles[index][2]]
+                    vertexHolder[renderableObject.triangles[index][2]], 
+                    vertexHolder[renderableObject.triangles[index][0]]
                 );
                 //Doing backface culling at this step
-                if(deltaAB.x*deltaAC.y - deltaAC.x*deltaAB.y < 0){
+                if(deltaAB.x*deltaAC.y - deltaAC.x*deltaAB.y >= 0){
                     continue;
                 }
-                /*
-                drawLine(
-                    vertexHolder[renderableObject.triangles[index][0]],
-                    vertexHolder[renderableObject.triangles[index][1]]
-                );
-                drawLine(
-                    vertexHolder[renderableObject.triangles[index][1]],
-                    vertexHolder[renderableObject.triangles[index][2]]
-                );
-                drawLine(
-                    vertexHolder[renderableObject.triangles[index][0]],
-                    vertexHolder[renderableObject.triangles[index][2]]
-                );
-                */
                 //Please rewrite
                 //This code finds the highest and lowest y on the triangle
                 lowestY = -1;
@@ -170,20 +157,22 @@ namespace PenroseEngine{
                     lowestY != -1
                 ) 
                 lowestY = (int)vertexHolder[renderableObject.triangles[index][2]].y+ySize/2;
-                /*
+                
                 if(
                     lowestY < 0 || 
                     highestY < 0 ||
                     lowestY > ySize || 
-                    highestY > ySize ) continue;
-                */
+                    highestY > ySize 
+                ) continue;
+                
                 for(int row = lowestY-1; row < highestY+1; row++){
                     if(row < 0 || row >= ySize)continue;
                     lineData = getRowFromTriangle(
                         vector3.add(vertexHolder[renderableObject.triangles[index][0]], new (xSize/2,ySize/2,0)),
-                        vector3.add(vertexHolder[renderableObject.triangles[index][1]], new (xSize/2,ySize/2,0)),
-                        vector3.add(vertexHolder[renderableObject.triangles[index][2]], new (xSize/2,ySize/2,0)),
-                        row
+                        deltaAB,
+                        deltaAC,
+                        row,
+                        index
                     );
                     linesData.Add(lineData);
                     if(lineData.rowStart >= 0 && lineData.rowEnd >= 0)
@@ -197,10 +186,13 @@ namespace PenroseEngine{
                         ) continue;
                         int colorData;
                         //if(i == lineData.rowStart || i==lineData.rowEnd-1) colorData = 0;
+                        
                         colorData = 
                         (int)(127 * (lineData.iStart + (lineData.iEnd-lineData.iStart)*rateChange)+
                               127 * (lineData.jStart + (lineData.jEnd-lineData.jStart)*rateChange)+
                               0);
+                        
+
                         //Console.WriteLine(lineData.rowStart);
                         screenInfo[i][row] = new double[]{
                             lineData.depthStart + (lineData.depthEnd-lineData.depthStart)*rateChange,
@@ -287,31 +279,24 @@ namespace PenroseEngine{
         }
         public static rowComponent getRowFromTriangle(
                 vector3 pointA, 
-                vector3 pointB, 
-                vector3 pointC, 
-                int row 
+                vector3 deltaB, 
+                vector3 deltaC, 
+                int row,
+                int triangleID
             ){
             //This is written badly, I need to rewrite 
 
             //Please rework this code
-            vector3 deltaB = vector3.subtract(pointB,pointA);
-            vector3 deltaC = vector3.subtract(pointC,pointA);
+            //vector3 deltaB = vector3.subtract(pointB,pointA);
+            //vector3 deltaC = vector3.subtract(pointC,pointA);
             vector3 iIntersectActual = new vector3();
             vector3 jIntersectActual = new vector3();
             vector3 iPlusJIntersectActual = new vector3();
-            Boolean iIntersectFound = false;
-            Boolean jIntersectFound = false;
-            Boolean iPlusJIntersectFound = false;
+            //Boolean iIntersectFound = false;
+            //Boolean jIntersectFound = false;
+            //Boolean iPlusJIntersectFound = false;
 
-            rowComponent lineData = new rowComponent(){
-                rowStart = -1,
-                rowEnd = -1,
-                iStart = 0,
-                iEnd = 0,
-                jStart = 0,
-                jEnd = 0,
-                triangleID = 0
-            };
+            rowComponent lineData = new rowComponent();
 
             //Where the line intersects with the pure i side of the triangle
             double iIntersect = -1;
@@ -321,128 +306,117 @@ namespace PenroseEngine{
             double iPlusJIntersect = -1;
             //Checks are in place to prevent devide by 0 error
             if(deltaB.y != 0) {
-                iIntersectFound = true;
+                //iIntersectFound = true;
                 iIntersect =  (row - pointA.y)/deltaB.y;
-                iIntersectActual = vector3.add(
-                    pointA, 
-                    vector3.scale(iIntersect, deltaB)
-                );
                 //rateOfChange = -(deltaC.y/deltaB.y);
                 //If row start has not been interacted with or point.x is less than row start
                 //Then save the point.x as the row start and mark down the i value
                 //Also check the i value to make sure it is between 0 and 1
-                if(
-                    (lineData.rowStart == -1 || iIntersectActual.x < lineData.rowStart) && 
-                    (iIntersect >= 0 && iIntersect < 1)
-                ) {
-                    lineData.rowStart = (int)iIntersectActual.x;
-                    lineData.iStart = iIntersect;
-                    lineData.jStart = 0;
-                    lineData.depthStart = iIntersectActual.z;
+                if(iIntersect >= 0 && iIntersect < 1){
+                    iIntersectActual = vector3.add(
+                        pointA, 
+                        vector3.scale(iIntersect, deltaB)
+                    );
+                    if(lineData.rowStart == -1 || iIntersectActual.x < lineData.rowStart){
+                        lineData.rowStart = (int)iIntersectActual.x;
+                        lineData.iStart = iIntersect;
+                        lineData.jStart = 0;
+                        lineData.depthStart = iIntersectActual.z;
+                    }
+                    //If row end has not been interacted with or point.x is more than row end
+                    //Then save the point.x as the row end and mark down the i value
+                    //Also check the i value to make sure it is between 0 and 1
+                    if(lineData.rowEnd == -1 || iIntersectActual.x > lineData.rowEnd){
+                        lineData.rowEnd = (int)iIntersectActual.x;
+                        lineData.iEnd = iIntersect;
+                        lineData.jEnd = 0;
+                        lineData.depthEnd = iIntersectActual.z;
+                    }
                 }
-                //If row end has not been interacted with or point.x is more than row end
-                //Then save the point.x as the row end and mark down the i value
-                //Also check the i value to make sure it is between 0 and 1
-                if(
-                    (lineData.rowEnd == -1 || iIntersectActual.x > lineData.rowEnd) && 
-                    (iIntersect >= 0 && iIntersect < 1)
-                ) {
-                    lineData.rowEnd = (int)iIntersectActual.x;
-                    lineData.iEnd = iIntersect;
-                    lineData.jEnd = 0;
-                    lineData.depthEnd = iIntersectActual.z;
-                }
+                
             }
             if(deltaC.y != 0){
-                jIntersectFound = true;
+                //jIntersectFound = true;
                 jIntersect =  (row - pointA.y)/deltaC.y;
-                jIntersectActual = vector3.add(
-                    pointA, 
-                    vector3.scale(jIntersect, deltaC)
-                );
+                
                 //If row start has not been interacted with or point.x is less than row start
                 //Then save the point.x as the row start and mark down the i value
                 //Also check the j value to make sure it is between 0 and 1
-                if(
-                    (lineData.rowStart == -1 || jIntersectActual.x < lineData.rowStart) && 
-                    (jIntersect >= 0 && jIntersect < 1)
-                ) {
-                    lineData.rowStart = (int)jIntersectActual.x;
-                    lineData.iStart = 0;
-                    lineData.jStart = jIntersect;
-                    lineData.depthStart = jIntersectActual.z;
+                if(jIntersect >= 0 && jIntersect < 1){
+                    jIntersectActual = vector3.add(
+                        pointA, 
+                        vector3.scale(jIntersect, deltaC)
+                    );
+                    if(lineData.rowStart == -1 || jIntersectActual.x < lineData.rowStart){
+                        lineData.rowStart = (int)jIntersectActual.x;
+                        lineData.iStart = 0;
+                        lineData.jStart = jIntersect;
+                        lineData.depthStart = jIntersectActual.z;
+                    }
+                    //If row end has not been interacted with or point.x is more than row end
+                    //Then save the point.x as the row end and mark down the j value
+                    //Also check the j value to make sure it is between 0 and 1
+                    if(lineData.rowEnd == -1 || jIntersectActual.x > lineData.rowEnd){
+                        lineData.rowEnd = (int)jIntersectActual.x;
+                        lineData.iEnd = 0;
+                        lineData.jEnd = jIntersect;
+                        lineData.depthEnd = jIntersectActual.z;
+                    }
                 }
-                //If row end has not been interacted with or point.x is more than row end
-                //Then save the point.x as the row end and mark down the j value
-                //Also check the j value to make sure it is between 0 and 1
-                if(
-                    (lineData.rowEnd == -1 || jIntersectActual.x > lineData.rowEnd ) && 
-                    (jIntersect >= 0 && jIntersect < 1)
-                ) {
-                    lineData.rowEnd = (int)jIntersectActual.x;
-                    lineData.iEnd = 0;
-                    lineData.jEnd = jIntersect;
-                    lineData.depthEnd = jIntersectActual.z;
-                }
+                
             } 
             //Gives the i intersect on the i+j = 1 axis
             //Compute 1 - i to find j
             if(deltaC.y-deltaB.y  != 0){
-                iPlusJIntersectFound = true;
+                //iPlusJIntersectFound = true;
                 iPlusJIntersect = (row - pointA.y - deltaB.y ) / (deltaC.y-deltaB.y);
-                iPlusJIntersectActual = vector3.add(
-                    pointA, 
-                    vector3.add(
-                        vector3.scale(iPlusJIntersect, deltaC),
-                        vector3.scale(1-iPlusJIntersect, deltaB)
-                    )                    
-                );
+                
                 //If row start has not been interacted with or point.x is less than row start
                 //Then save the point.x as the row start and mark down the i and j values
                 //Also check the i and j values to make sure it they are between 0 and 1
                 if(
-                    (lineData.rowStart == -1 || iPlusJIntersectActual.x < lineData.rowStart) && 
-                    (1-iPlusJIntersect >= 0 && 1-iPlusJIntersect < 1) && 
-                    (iPlusJIntersect >= 0 && iPlusJIntersect < 1)
+                    1-iPlusJIntersect >= 0 && 
+                    1-iPlusJIntersect < 1 && 
+                    iPlusJIntersect >= 0 && 
+                    iPlusJIntersect < 1
                 ){
-                    lineData.rowStart = (int)iPlusJIntersectActual.x;
-                    lineData.iStart = iPlusJIntersect;
-                    lineData.jStart = 1-iPlusJIntersect;
-                    lineData.depthStart = iPlusJIntersectActual.z;
-                } 
-                //If row end has not been interacted with or point.x is more than row end
-                //Then save the point.x as the row end and mark down the i and j values
-                //Also check the i and j values to make sure it they are between 0 and 1
-                if(
-                    (lineData.rowEnd == -1 || iPlusJIntersectActual.x > lineData.rowEnd)&& 
-                    (1-iPlusJIntersect >= 0 && 1-iPlusJIntersect < 1) && 
-                    (iPlusJIntersect >= 0 && iPlusJIntersect < 1)
-                ){
-                    lineData.rowEnd = (int)iPlusJIntersectActual.x;
-                    lineData.iEnd = iPlusJIntersect;
-                    lineData.jEnd = 1-iPlusJIntersect;
-                    lineData.depthEnd = iPlusJIntersectActual.z;
+                    iPlusJIntersectActual = vector3.add(
+                        pointA, 
+                        vector3.add(
+                            vector3.scale(iPlusJIntersect, deltaC),
+                            vector3.scale(1-iPlusJIntersect, deltaB)
+                        )                    
+                    );
+                    if(lineData.rowStart == -1 || iPlusJIntersectActual.x < lineData.rowStart){
+                        lineData.rowStart = (int)iPlusJIntersectActual.x;
+                        lineData.iStart = iPlusJIntersect;
+                        lineData.jStart = 1-iPlusJIntersect;
+                        lineData.depthStart = iPlusJIntersectActual.z;
+                    } 
+                    //If row end has not been interacted with or point.x is more than row end
+                    //Then save the point.x as the row end and mark down the i and j values
+                    //Also check the i and j values to make sure it they are between 0 and 1
+                    if(lineData.rowEnd == -1 || iPlusJIntersectActual.x > lineData.rowEnd){
+                        lineData.rowEnd = (int)iPlusJIntersectActual.x;
+                        lineData.iEnd = iPlusJIntersect;
+                        lineData.jEnd = 1-iPlusJIntersect;
+                        lineData.depthEnd = iPlusJIntersectActual.z;
+                    }
                 }
+                
             } 
             //If all the deltas are 0 then return
             if(
-                !iIntersectFound && 
-                !jIntersectFound && 
-                !iPlusJIntersectFound
-            )return new rowComponent(){
-                rowStart = -1,
-                rowEnd = -1,
-                iStart = 0,
-                iEnd = 0,
-                jStart = 0,
-                jEnd = 0,
-                triangleID = 0
-            };
+                lineData.rowEnd == -1 &&
+                lineData.rowStart == -1
+            )return new rowComponent();
             
             if(lineData.rowStart < 0) lineData.rowStart = 0;
             if(lineData.rowStart > xSize) lineData.rowStart = xSize;
             if(lineData.rowEnd < 0) lineData.rowEnd = 0;
             if(lineData.rowEnd > xSize) lineData.rowEnd = xSize;
+            lineData.calculateIntercepts();
+            lineData.triangleID = triangleID;
             return lineData;
 
             
@@ -626,9 +600,9 @@ namespace PenroseEngine{
     }
     public class rowComponent{
         //Where in the row does our section start
-        public int rowStart;
+        public int rowStart = -1;
         //Where in the row does our section end
-        public int rowEnd;
+        public int rowEnd = -1;
         //What is the i value at the start of the section
         public double iStart;
         //What is the i value at the end of the section
@@ -643,6 +617,11 @@ namespace PenroseEngine{
         public double depthStart;
         //What is the depth value at the end of the section
         public double depthEnd;
+        //What is the rate that the depth value changes over the length of the
+        //line segment 
+        public double riseOverRun;
+        //Where does our rate of change cross the y axis
+        public double yIntercept;
         public rowComponent(){
             //Empty Class
         }
@@ -657,6 +636,15 @@ namespace PenroseEngine{
             triangleID = target.triangleID;
             depthStart = target.depthStart;
             depthEnd = target.depthEnd;
+            calculateIntercepts();
+        }
+        //Calcualte the x and y intercepts for the line section
+        //This is used to find out where two line segments cross.
+        public Boolean calculateIntercepts(){
+            if(rowEnd-rowStart == 0) return false;
+            riseOverRun = (depthEnd-depthStart)/(rowEnd-rowStart);
+            yIntercept = depthStart-rowStart*riseOverRun;
+            return true;
         }
     }
     public class lineContainer{
@@ -668,19 +656,101 @@ namespace PenroseEngine{
         }
 
         public Boolean checkIntersection(rowComponent line){
-            //We create a temp line for manipulation but with no data
-            rowComponent tempLine;
+            //Check to make sure our line is not of 0 length
+            if(line.rowStart - line.rowEnd == 0) return false;
+            //Variable to hold the intersection point between the lines
+            double crossingPoint;
+            //Where is the left side of our section
+            double leftIntersect;
+            //Where is the right side of our section
+            double rightIntersect;
+            //Is our intersect in our section
+            Boolean insideLine;
+            //Variable for the left hand side of the section
+            rowComponent leftLine;
+            //Variable for the right hand side of the section
+            rowComponent rightLine;
             //We check to make sure that either end of our line falls within our lineContainer
             if(lineStart <= line.rowStart || lineEnd >= line.rowEnd){
-                tempLine = new(line);
                 foreach(rowComponent containedLine in lines){
-                    //Checking if the line start is within the containedLine
-                    if(
-                        containedLine.rowStart <= line.rowStart && 
-                        containedLine.rowEnd >= line.rowStart
-                    ){
-                        
+                    //Setting insideLine to false at beginning of loop
+                    insideLine = false;
+                    //Resetting line variables
+                    leftLine = new rowComponent();
+                    rightLine = new rowComponent();
+                    //Finding the left and right sides of our section
+                    leftIntersect = (
+                        Math.Abs(line.rowStart-containedLine.rowStart) + 
+                        line.rowStart + containedLine.rowStart
+                    )/2;
+                    rightIntersect = (
+                        line.rowEnd + containedLine.rowEnd - 
+                        Math.Abs(containedLine.rowEnd-line.rowEnd)
+                    )/2;
+                    //If leftIntersect is greater than right, then continue to next interation
+                    if(rightIntersect<leftIntersect)continue;
+                    //Make sure that (line.riseOverRun-containedLine.riseOverRun) is not 0 
+                    //If it is 0 then our lines are parallel
+                    if(line.riseOverRun-containedLine.riseOverRun != 0){
+                        //Finding the point of crossing
+                        crossingPoint = (containedLine.yIntercept-line.yIntercept)/
+                                        (line.riseOverRun-containedLine.riseOverRun);
+                        //Checking if our intersect is inside of our section
+                        if(leftIntersect<crossingPoint && rightIntersect>crossingPoint){
+                            leftLine = new rowComponent{
+                                rowStart = (int)leftIntersect,
+                                rowEnd = (int)crossingPoint,
+                                triangleID = -1
+                            };
+                            rightLine = new rowComponent{
+                                rowStart = (int)crossingPoint,
+                                rowEnd = (int)rightIntersect,
+                                triangleID = -1
+                            };
+                            insideLine = true;
+                        }
                     }
+                    //If our intersect is not in our section or our lines are parallel
+                    if(!insideLine){
+                        leftLine = new rowComponent{
+                            rowStart = (int)leftIntersect,
+                            rowEnd = (int)rightIntersect,
+                            triangleID = -1
+                        };
+                    }
+                    //Checking if our line is on top to the left
+                    if(line.riseOverRun-containedLine.riseOverRun > 0){
+                        leftLine.triangleID = line.triangleID;
+                        leftLine.riseOverRun = line.riseOverRun;
+                        leftLine.yIntercept = line.yIntercept;
+
+                        rightLine.triangleID = containedLine.triangleID;
+                        rightLine.riseOverRun = containedLine.riseOverRun;
+                        rightLine.yIntercept = containedLine.yIntercept;
+                    }
+                    //Checking if our containedLine is on top to the left
+                    else if(line.riseOverRun-containedLine.riseOverRun < 0){
+                        leftLine.triangleID = containedLine.triangleID;
+                        leftLine.riseOverRun = containedLine.riseOverRun;
+                        leftLine.yIntercept = containedLine.yIntercept;
+
+                        rightLine.triangleID = line.triangleID;
+                        rightLine.riseOverRun = line.riseOverRun;
+                        rightLine.yIntercept = line.yIntercept;
+                    }
+                    //If our lines are parallel, check which line has a higher depth value
+                    else{
+                        if(line.yIntercept > containedLine.yIntercept){
+                            leftLine.triangleID = line.triangleID;
+                            leftLine.riseOverRun = line.riseOverRun;
+                            leftLine.yIntercept = line.yIntercept;
+                        }else{
+                            leftLine.triangleID = containedLine.triangleID;
+                            leftLine.riseOverRun = containedLine.riseOverRun;
+                            leftLine.yIntercept = containedLine.yIntercept;
+                        }
+                    }
+                    //Now we know what line is on top where
                 }
                 return true;
             }

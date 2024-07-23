@@ -78,7 +78,7 @@ public class CivBuilder{
         );
         house = new upgradableBuilding( 
             "House", //Building type name
-            "cube.obj", //Building model
+            "buildingOne.obj", //Building model
             //Upgrade names
             [
                 "Small hut",
