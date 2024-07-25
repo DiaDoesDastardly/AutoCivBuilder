@@ -9,6 +9,7 @@ using System.IO.Compression;
 using System.Reflection.Metadata.Ecma335;
 using System.Drawing.Drawing2D;
 using System.Diagnostics.Eventing.Reader;
+using System.ComponentModel;
 
 namespace PenroseEngine{
     public class rendererPipeline
@@ -55,24 +56,11 @@ namespace PenroseEngine{
             for(int index = 0; index < vertexHolder.Length; index++){
                 vertexHolder[index] = new vector3();
             }
-            //int[][] triangleHolder = triangleList;
-            //Each pixel has the info of {depth, interacted, color}
-            //interacted values are 
-            //  0.0 == not interacted
-            //  1.0 == interacted
-            
-            /*
-            for(int z = 0; z < rendererPipeline.screenInfo .Length; z++){
-                rendererPipeline.screenInfo [z] = new double[rendererPipeline.ySize][];
-                for(int x = 0; x < rendererPipeline.screenInfo [z].Length; x++){
-                    rendererPipeline.screenInfo [z][x] = new double[5];
-                }
-            }
-            */
+
             double[] tempPoint = new double[]{0.0,0.0,0.0};
             vector3 deltaAB;
             vector3 deltaAC;
-            double[] targetPoint = new double[]{0.0,0.0,0.0};
+            vector3 normalDelta;
             rowComponent lineData;
             //List<rowComponent> linesData = new List<rowComponent>();
             int lowestY;
@@ -105,10 +93,19 @@ namespace PenroseEngine{
                     vertexHolder[renderableObject.triangles[index][2]], 
                     vertexHolder[renderableObject.triangles[index][0]]
                 );
+                normalDelta = vector3.scale(.5,vector3.add(deltaAB, deltaAC));
+                normalDelta.scale(1/Math.Sqrt(
+                    normalDelta.x*normalDelta.x + 
+                    normalDelta.y*normalDelta.y + 
+                    normalDelta.z*normalDelta.z
+                ));
                 //Doing backface culling at this step
                 if(deltaAB.x*deltaAC.y - deltaAC.x*deltaAB.y >= 0){
                     continue;
                 }
+
+                //Creating a modified pointA so we don't have to do it multiple times per frame
+                vector3 deltaA = vector3.add(vertexHolder[renderableObject.triangles[index][0]], new (xSize/2,ySize/2,0));
 
                 //Please rewrite
                 //This code finds the highest and lowest y on the triangle
@@ -142,15 +139,26 @@ namespace PenroseEngine{
                     (lowestY > ySize && 
                     highestY > ySize) 
                 ) continue;
-                
+
                 lastMiliCheck = DateTime.Now.Ticks;
+                /*
+                vector3 normalAB = vector3.normalize(deltaAB);
+                vector3 normalAC = vector3.normalize(deltaAC);
                 
+                double changeInDepth; 
+                double yIntercept;
+                changeInDepth = 
+                        (1/normalAB.y*normalAB.z-1/normalAC.y*normalAC.z)/
+                        (1/normalAB.y*normalAB.x-1/normalAC.y*normalAC.x); 
+                
+                */
                 for(int row = lowestY-1; row < highestY+1; row++){
                     if(row < 0 || row >= ySize)continue;
+                    //yIntercept = (row - vertexHolder[renderableObject.triangles[index][0]].y)/normalAC.y*normalAC.z;
                     rowAssignments++;
                     //lastMiliCheck = DateTime.Now.Ticks;
                     lineData = getRowFromTriangle(
-                        vector3.add(vertexHolder[renderableObject.triangles[index][0]], new (xSize/2,ySize/2,0)),
+                        deltaA,
                         deltaAB,
                         deltaAC,
                         row,
@@ -168,7 +176,12 @@ namespace PenroseEngine{
                             0 //lineData.jStart + (lineData.jEnd-lineData.jStart)*rateChange
                         };
                         */
+                        if((lineData.depthEnd-lineData.depthStart)*i > screenInfo[i][row][0] && screenInfo[i][row][1] == frameCounter)
+                        continue;
+                        screenInfo[i][row][0] = (lineData.depthEnd-lineData.depthStart)*i;
                         screenInfo[i][row][1] = frameCounter;
+                        screenInfo[i][row][2] = 12*Math.Abs(deltaA.z);
+                        if(screenInfo[i][row][2] > 255) screenInfo[i][row][2] = 255;
                     }
                 }
                 totalTimeTaken += DateTime.Now.Ticks - lastMiliCheck;  
@@ -177,62 +190,7 @@ namespace PenroseEngine{
             //returning the screen data
             return screenInfo;
         } 
-        public static void drawLine(vector3 pointA, vector3 pointB){
-            vector3 interactedPoint = new vector3(0,0,0);
-            double rateOfChange;
-            int inverse;
-            if(Math.Abs(pointB.x-pointA.x)>=Math.Abs(pointB.y-pointA.y)){
-                rateOfChange = (pointB.y-pointA.y)/(pointB.x-pointA.x);
-                inverse = Math.Sign(pointB.x-pointA.x);
-                for(int index = 0; index<Math.Abs(pointB.x-pointA.x); index++){
-                    interactedPoint = new vector3(
-                        inverse*Math.Floor((double)index)+Math.Floor(pointA.x)+xSize/2,
-                        inverse*Math.Floor(rateOfChange*index)+Math.Floor(pointA.y)+ySize/2,
-                        index/Math.Abs(pointB.x-pointA.x)*pointA.z+
-                        (1-index/Math.Abs(pointB.x-pointA.x))*pointB.z
-                    );
-                    if(
-                        interactedPoint.x < 0 || 
-                        interactedPoint.x >= xSize || 
-                        interactedPoint.y < 0 || 
-                        interactedPoint.y >= ySize
-                    ) continue;
-                    screenInfo[(int)interactedPoint.x][(int)interactedPoint.y] = new double[]{
-                        interactedPoint.z,
-                        frameCounter,
-                        0,
-                        0,
-                        0
-                    };
-                }
-                
-            }else{
-                rateOfChange = (pointB.x-pointA.x)/(pointB.y-pointA.y);
-                inverse = Math.Sign(pointB.y-pointA.y);
-                for(int index = 0; index<Math.Abs(pointB.y-pointA.y); index++){
-                    interactedPoint = new vector3(
-                        inverse*Math.Floor(rateOfChange*index)+Math.Floor(pointA.x)+xSize/2,
-                        inverse*Math.Floor((double)index)+Math.Floor(pointA.y)+ySize/2,
-                        index/Math.Abs(pointB.x-pointA.x)*pointA.z+
-                        (1-index/Math.Abs(pointB.x-pointA.x))*pointB.z
-                    );
-                    if(
-                        interactedPoint.x < 0 || 
-                        interactedPoint.x >= xSize || 
-                        interactedPoint.y < 0 || 
-                        interactedPoint.y >= ySize
-                    ) return;
-                    screenInfo[(int)interactedPoint.x][(int)interactedPoint.y] = new double[]{
-                        interactedPoint.z,
-                        frameCounter,
-                        0,
-                        0,
-                        0
-                    };
-                }
-                
-            }
-        }
+
         public static rowComponent getRowFromTriangle(
                 vector3 pointA, 
                 vector3 deltaB, 
@@ -265,16 +223,28 @@ namespace PenroseEngine{
                 iIntersect =  (row - pointA.y)/deltaB.y;
                 if(iIntersect >= 0 && iIntersect < 1){
                     iIntersectActual = deltaB.x * iIntersect + pointA.x;
-                    if(iIntersectActual<lineData.rowStart) lineData.rowStart = (int)iIntersectActual;
-                    if(iIntersectActual>lineData.rowEnd) lineData.rowEnd = (int)iIntersectActual;                    
+                    if(iIntersectActual<lineData.rowStart) {
+                        lineData.rowStart = (int)iIntersectActual;
+                        lineData.depthStart = deltaB.z * iIntersect + pointA.z;
+                    }
+                    if(iIntersectActual>lineData.rowEnd) {
+                        lineData.rowEnd = (int)iIntersectActual;
+                        lineData.depthEnd = deltaB.z * iIntersect + pointA.z;
+                    }                  
                 }                
             }
             if(deltaC.y != 0){
                 jIntersect =  (row - pointA.y)/deltaC.y;
                 if(jIntersect >= 0 && jIntersect < 1){
                     jIntersectActual = deltaC.x * jIntersect + pointA.x;
-                    if(jIntersectActual<lineData.rowStart) lineData.rowStart = (int)jIntersectActual;
-                    if(jIntersectActual>lineData.rowEnd) lineData.rowEnd = (int)jIntersectActual;
+                    if(jIntersectActual<lineData.rowStart) {
+                        lineData.rowStart = (int)jIntersectActual;
+                        lineData.depthStart = deltaB.z * jIntersect + pointA.z;
+                    }
+                    if(jIntersectActual>lineData.rowEnd) {
+                        lineData.rowEnd = (int)jIntersectActual;
+                        lineData.depthEnd = deltaB.z * jIntersect + pointA.z;
+                    }
                 }
                 
             } 
@@ -282,13 +252,16 @@ namespace PenroseEngine{
             //Compute 1 - i to find j
             if(deltaC.y-deltaB.y  != 0){
                 iPlusJIntersect = (row - pointA.y - deltaB.y ) / (deltaC.y-deltaB.y);
-                if(
-                    iPlusJIntersect >= 0 && 
-                    iPlusJIntersect < 1
-                ){
+                if(iPlusJIntersect >= 0 && iPlusJIntersect < 1){
                     iPlusJIntersectActual = iPlusJIntersect*deltaC.x + deltaB.x*(1-iPlusJIntersect) + pointA.x;
-                    if(iPlusJIntersectActual<lineData.rowStart) lineData.rowStart = (int)iPlusJIntersectActual;
-                    if(iPlusJIntersectActual>lineData.rowEnd) lineData.rowEnd = (int)iPlusJIntersectActual;
+                    if(iPlusJIntersectActual<lineData.rowStart) {
+                        lineData.rowStart = (int)iPlusJIntersectActual;
+                        lineData.depthStart = iPlusJIntersect*deltaC.z + deltaB.z*(1-iPlusJIntersect) + pointA.z;
+                    }
+                    if(iPlusJIntersectActual>lineData.rowEnd) {
+                        lineData.rowEnd = (int)iPlusJIntersectActual;
+                        lineData.depthEnd = iPlusJIntersect*deltaC.z + deltaB.z*(1-iPlusJIntersect) + pointA.z;
+                    }
                 }
                 
             } 
@@ -322,13 +295,10 @@ namespace PenroseEngine{
                         screenImage.SetPixel(x,y,tempColor);
                     }else{
                         screenInfo[screenX][screenY][1] = -1;
-                        //If the pixel has not been interacted with, then set color to white
-                        //tempColor = Color.FromArgb(255,255,255,255);
-                        //screenImage.SetPixel(x,y,tempColor);
                     }
                 }
             }
-            Image output = (Image)screenImage;
+            Image output = screenImage;
             return output;
         }
 	}
@@ -468,15 +438,47 @@ namespace PenroseEngine{
                 first.z * scale
             );
         }
-        public void addThis(vector3 first){
+        public static double magnitude(vector3 first){
+            return Math.Sqrt(
+                first.x * first.x +
+                first.y * first.y +
+                first.z * first.z
+            );
+        }
+        public static vector3 normalize(vector3 first){
+            return new vector3(
+                first.x / vector3.magnitude(first),
+                first.y / vector3.magnitude(first),
+                first.z / vector3.magnitude(first)
+            );
+            
+        }
+        public void scale(double scale){
+            x = x * scale;
+            y = y * scale;
+            z = z * scale;
+        }
+        public void add(vector3 first){
             x += first.x;
             y += first.y;
             z += first.z;
         }
-        public void subtractThis(vector3 first){
+        public void subtract(vector3 first){
             x -= first.x;
             y -= first.y;
             z -= first.z;
+        }
+        public double magnitude(){
+            return Math.Sqrt(
+                x * x +
+                y * y +
+                z * z
+            );
+        }
+        public void normalize(){
+            x = x / magnitude();
+            y = y / magnitude();
+            z = z / magnitude();
         }
     }
     public class rowComponent{
@@ -484,20 +486,12 @@ namespace PenroseEngine{
         public int rowStart = -1;
         //Where in the row does our section end
         public int rowEnd = -1;
-        //What is the i value at the start of the section
-        public double iStart;
-        //What is the i value at the end of the section
-        public double iEnd;
-        //What is the j value at the start of the section
-        public double jStart;
-        //What is the j value at the end of the section
-        public double jEnd;
+        //Where in the row does our section start
+        public double depthStart = -1;
+        //Where in the row does our section end
+        public double depthEnd = -1;
         //What is the ID of the triangle that this section is from
         public int triangleID;
-        //What is the depth value at the start of the section
-        public double depthStart;
-        //What is the depth value at the end of the section
-        public double depthEnd;
         //What is the rate that the depth value changes over the length of the
         //line segment 
         public double riseOverRun;
@@ -510,22 +504,7 @@ namespace PenroseEngine{
             //This method is for copying other rowComponents
             rowStart = target.rowStart;
             rowEnd = target.rowEnd;
-            iStart = target.iStart;
-            iEnd = target.iEnd;
-            jStart = target.jStart;
-            jEnd = target.jEnd;
             triangleID = target.triangleID;
-            depthStart = target.depthStart;
-            depthEnd = target.depthEnd;
-            calculateIntercepts();
-        }
-        //Calcualte the x and y intercepts for the line section
-        //This is used to find out where two line segments cross.
-        public Boolean calculateIntercepts(){
-            if(rowEnd-rowStart == 0) return false;
-            riseOverRun = (depthEnd-depthStart)/(rowEnd-rowStart);
-            yIntercept = depthStart-rowStart*riseOverRun;
-            return true;
         }
     }
     public class lineContainer{
