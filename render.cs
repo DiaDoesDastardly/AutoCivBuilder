@@ -137,15 +137,16 @@ namespace PenroseEngine{
                 lowestY = (int)vertexHolder[renderableObject.triangles[index][2]].y+ySize/2;
                 
                 if(
-                    lowestY < 0 || 
-                    highestY < 0 ||
-                    lowestY > ySize || 
-                    highestY > ySize 
+                    (lowestY < 0 && 
+                    highestY < 0) ||
+                    (lowestY > ySize && 
+                    highestY > ySize) 
                 ) continue;
+                
+                lastMiliCheck = DateTime.Now.Ticks;
                 
                 for(int row = lowestY-1; row < highestY+1; row++){
                     if(row < 0 || row >= ySize)continue;
-                    lastMiliCheck = DateTime.Now.Ticks;
                     rowAssignments++;
                     //lastMiliCheck = DateTime.Now.Ticks;
                     lineData = getRowFromTriangle(
@@ -155,10 +156,10 @@ namespace PenroseEngine{
                         row,
                         index
                     );        
-                    totalTimeTaken += DateTime.Now.Ticks - lastMiliCheck;        
+                          
                     for(int i = lineData.rowStart; i < lineData.rowEnd; i++){
                         if(i >= xSize || i < 0) continue;
-                        //Console.WriteLine(lineData.rowStart);
+                        /*
                         screenInfo[i][row] = new double[]{
                             0,//lineData.depthStart + (lineData.depthEnd-lineData.depthStart)*rateChange,
                             frameCounter,
@@ -166,9 +167,13 @@ namespace PenroseEngine{
                             0,//lineData.iStart + (lineData.iEnd-lineData.iStart)*rateChange,
                             0 //lineData.jStart + (lineData.jEnd-lineData.jStart)*rateChange
                         };
+                        */
+                        screenInfo[i][row][1] = frameCounter;
                     }
                 }
+                totalTimeTaken += DateTime.Now.Ticks - lastMiliCheck;  
             }
+
             //returning the screen data
             return screenInfo;
         } 
@@ -261,7 +266,7 @@ namespace PenroseEngine{
                 if(iIntersect >= 0 && iIntersect < 1){
                     iIntersectActual = deltaB.x * iIntersect + pointA.x;
                     if(iIntersectActual<lineData.rowStart) lineData.rowStart = (int)iIntersectActual;
-                    else if(iIntersectActual>lineData.rowEnd) lineData.rowEnd = (int)iIntersectActual;                    
+                    if(iIntersectActual>lineData.rowEnd) lineData.rowEnd = (int)iIntersectActual;                    
                 }                
             }
             if(deltaC.y != 0){
@@ -300,19 +305,23 @@ namespace PenroseEngine{
             Bitmap screenImage = new Bitmap(xSize, ySize);
             //Creating the tempColor holder that will be used to color the triangles
             Color tempColor;
+            int screenX;
+            int screenY;
             for(int x = 0; x< xSize; x++){
+                screenX = (int)(screenResolution*x);
                 for(int y = 0; y< ySize; y++){
-                    if(screenInfo[(int)(screenResolution*x)][(int)(screenResolution*y)][1] == frameCounter){
+                    screenY = (int)(screenResolution*y);
+                    if(screenInfo[screenX][screenY][1] == frameCounter){
                         //Pulling the color from screenData
                         tempColor = Color.FromArgb(
                             255,
-                            (int)screenInfo[(int)(screenResolution*x)][(int)(screenResolution*y)][2],
-                            (int)screenInfo[(int)(screenResolution*x)][(int)(screenResolution*y)][2],
-                            (int)screenInfo[(int)(screenResolution*x)][(int)(screenResolution*y)][2]
+                            (int)screenInfo[screenX][screenY][2],
+                            (int)screenInfo[screenX][screenY][2],
+                            (int)screenInfo[screenX][screenY][2]
                         );
                         screenImage.SetPixel(x,y,tempColor);
                     }else{
-                        screenInfo[(int)(screenResolution*x)][(int)(screenResolution*y)] = new double[5];
+                        screenInfo[screenX][screenY][1] = -1;
                         //If the pixel has not been interacted with, then set color to white
                         //tempColor = Color.FromArgb(255,255,255,255);
                         //screenImage.SetPixel(x,y,tempColor);
@@ -633,7 +642,7 @@ namespace PenroseEngine{
     {
         //private rendererPipeline render;
         private System.Windows.Forms.Timer timer;
-        private int intervalMilliseconds = (int)(1000/60); // Change this to set the interval in milliseconds
+        private int intervalMilliseconds = (int)(1000/120); // Change this to set the interval in milliseconds
         private Random random = new Random();
         private PictureBox pictureBox1;
         private double[,] rotationalMatrix;
@@ -644,7 +653,6 @@ namespace PenroseEngine{
         private TrackBar trackBar3;
 
         private long lastMiliCheck;
-        private double averageFramePerSeconds = 0;
         private double rowAssignmentTimer = 0;
         private double rowAssignmentCounter = 0;
         private int highestRowAssignment = 0;
@@ -763,15 +771,7 @@ namespace PenroseEngine{
                 highestRowAssignment = 0;
                 totalRenderTime = 0;
             }
-            /*
-            if(rendererPipeline.frameCounter >= 60){                
-                rendererPipeline.frameCounter = 1;
-                
-            }*/
-            rendererPipeline.triangleDensity += 0.001;
-            if(rendererPipeline.triangleDensity >= 1.5){
-                rendererPipeline.triangleDensity = .1;
-            }
+
             scale = trackBar3.Value;
             rotationalMatrix = rendererPipeline.rotationMatrixGenerator(trackBar1.Value,trackBar2.Value);
             foreach(gameObject item in renderObjects)

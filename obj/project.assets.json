@@ -8,19 +8,19 @@
     "net8.0-windows7.0": []
   },
   "packageFolders": {
-    "C:\\Users\\borgs\\.nuget\\packages\\": {}
+    "C:\\Users\\Charley Dodgion\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\borgs\\Documents\\AutoCivBuilder\\AutoCivBuilder\\AutoCivBuilder.csproj",
+      "projectUniqueName": "C:\\Users\\Charley Dodgion\\Documents\\AutoCivBuilder\\AutoCivBuilder.csproj",
       "projectName": "AutoCivBuilder",
-      "projectPath": "C:\\Users\\borgs\\Documents\\AutoCivBuilder\\AutoCivBuilder\\AutoCivBuilder.csproj",
-      "packagesPath": "C:\\Users\\borgs\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\borgs\\Documents\\AutoCivBuilder\\AutoCivBuilder\\obj\\",
+      "projectPath": "C:\\Users\\Charley Dodgion\\Documents\\AutoCivBuilder\\AutoCivBuilder.csproj",
+      "packagesPath": "C:\\Users\\Charley Dodgion\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Charley Dodgion\\Documents\\AutoCivBuilder\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\borgs\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "C:\\Users\\Charley Dodgion\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net8.0-windows"
@@ -38,11 +38,6 @@
         "warnAsError": [
           "NU1605"
         ]
-      },
-      "restoreAuditProperties": {
-        "enableAudit": "true",
-        "auditLevel": "low",
-        "auditMode": "direct"
       }
     },
     "frameworks": {
@@ -67,7 +62,7 @@
             "privateAssets": "none"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.203/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.101/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

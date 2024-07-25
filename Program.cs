@@ -26,7 +26,7 @@ for(int yPos = 0; yPos < civ.mapSizeY; yPos++){
 
 /*
 gameObject[] buildingModels = new gameObject[]{
-    new(objectFolder+"buildingOne.obj")
+    new(objectFolder+"cube.obj")
 };
 */
 double[,] rotationMatrix = rendererPipeline.rotationMatrixGenerator(0,0);
