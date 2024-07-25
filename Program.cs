@@ -23,9 +23,10 @@ for(int yPos = 0; yPos < civ.mapSizeY; yPos++){
     };
 }
 
+
 /*
 gameObject[] buildingModels = new gameObject[]{
-    new(objectFolder+"monkey.obj")
+    new(objectFolder+"buildingOne.obj")
 };
 */
 double[,] rotationMatrix = rendererPipeline.rotationMatrixGenerator(0,0);

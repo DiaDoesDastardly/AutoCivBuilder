@@ -19,6 +19,9 @@ namespace PenroseEngine{
         public static double triangleDensity = 1.5;
         public static double[][][] screenInfo = new double[(int)(screenResolution*xSize)][][];
         public static double frameCounter = 0;
+        public static int rowAssignments = 0;
+        public static long totalTimeTaken = 0;
+        public static long lastMiliCheck = 0;
         public static double[,] rotationMatrixGenerator(double theta, double phi){
             //Converting input degrees into radians
             theta = (theta/180)*Math.PI;
@@ -70,12 +73,10 @@ namespace PenroseEngine{
             vector3 deltaAB;
             vector3 deltaAC;
             double[] targetPoint = new double[]{0.0,0.0,0.0};
-            double distAB = 0.0;
-            double distAC = 0.0;
             rowComponent lineData;
-            List<rowComponent> linesData = new List<rowComponent>();
-            int lowestY = -1;
-            int highestY = -1;
+            //List<rowComponent> linesData = new List<rowComponent>();
+            int lowestY;
+            int highestY;
             //Rotating all of the points of the object by the rotational matrix
             //For now the offset will be {0,0,0}
 
@@ -95,26 +96,6 @@ namespace PenroseEngine{
             }
 
             for(int index = 0; index < renderableObject.triangles.Length; index++){
-                //Checking that all points are on screen
-                //Need to find faster way for this
-                /*
-                if(
-                    (vertexHolder[renderableObject.triangles[index][0]].x+xSize/2 < 0 ||
-                    vertexHolder[renderableObject.triangles[index][0]].x+xSize/2 >= xSize) &&
-                    (vertexHolder[renderableObject.triangles[index][0]].y+ySize/2 < 0 ||
-                    vertexHolder[renderableObject.triangles[index][0]].y+ySize/2 >= ySize) &&
-
-                    (vertexHolder[renderableObject.triangles[index][1]].x+xSize/2 < 0 ||
-                    vertexHolder[renderableObject.triangles[index][1]].x+xSize/2 >= xSize) &&
-                    (vertexHolder[renderableObject.triangles[index][1]].y+ySize/2 < 0 ||
-                    vertexHolder[renderableObject.triangles[index][1]].y+ySize/2 >= ySize) &&
-
-                    (vertexHolder[renderableObject.triangles[index][2]].x+xSize/2 < 0 ||
-                    vertexHolder[renderableObject.triangles[index][2]].x+xSize/2 >= xSize) &&
-                    (vertexHolder[renderableObject.triangles[index][2]].y+ySize/2 < 0 ||
-                    vertexHolder[renderableObject.triangles[index][2]].y+ySize/2 >= ySize)
-                ) continue;
-                */
                 //Finding the deltaAB and deltaAC for this triangle 
                 deltaAB = vector3.subtract(
                     vertexHolder[renderableObject.triangles[index][1]], 
@@ -128,33 +109,30 @@ namespace PenroseEngine{
                 if(deltaAB.x*deltaAC.y - deltaAC.x*deltaAB.y >= 0){
                     continue;
                 }
+
                 //Please rewrite
                 //This code finds the highest and lowest y on the triangle
-                lowestY = -1;
+                lowestY = ySize;
                 highestY = -1;
                 if(vertexHolder[renderableObject.triangles[index][0]].y+ySize/2 > 0){
                     highestY = (int)vertexHolder[renderableObject.triangles[index][0]].y+ySize/2;
                     lowestY = (int)vertexHolder[renderableObject.triangles[index][0]].y+ySize/2;
                 }
                 if(
-                    highestY < vertexHolder[renderableObject.triangles[index][1]].y+ySize/2 &&
-                    highestY != -1
+                    highestY < vertexHolder[renderableObject.triangles[index][1]].y+ySize/2
                 ) 
                 highestY = (int)vertexHolder[renderableObject.triangles[index][1]].y+ySize/2;
                 if(
-                    lowestY > vertexHolder[renderableObject.triangles[index][1]].y+ySize/2 &&
-                    lowestY != -1
+                    lowestY > vertexHolder[renderableObject.triangles[index][1]].y+ySize/2
                 ) 
                 lowestY = (int)vertexHolder[renderableObject.triangles[index][1]].y+ySize/2;
 
                 if(
-                    highestY < vertexHolder[renderableObject.triangles[index][2]].y+ySize/2 &&
-                    highestY != -1
+                    highestY < vertexHolder[renderableObject.triangles[index][2]].y+ySize/2
                 ) 
                 highestY = (int)vertexHolder[renderableObject.triangles[index][2]].y+ySize/2;
                 if(
-                    lowestY > vertexHolder[renderableObject.triangles[index][2]].y+ySize/2 &&
-                    lowestY != -1
+                    lowestY > vertexHolder[renderableObject.triangles[index][2]].y+ySize/2 
                 ) 
                 lowestY = (int)vertexHolder[renderableObject.triangles[index][2]].y+ySize/2;
                 
@@ -167,56 +145,29 @@ namespace PenroseEngine{
                 
                 for(int row = lowestY-1; row < highestY+1; row++){
                     if(row < 0 || row >= ySize)continue;
+                    lastMiliCheck = DateTime.Now.Ticks;
+                    rowAssignments++;
+                    //lastMiliCheck = DateTime.Now.Ticks;
                     lineData = getRowFromTriangle(
                         vector3.add(vertexHolder[renderableObject.triangles[index][0]], new (xSize/2,ySize/2,0)),
                         deltaAB,
                         deltaAC,
                         row,
                         index
-                    );
-                    linesData.Add(lineData);
-                    if(lineData.rowStart >= 0 && lineData.rowEnd >= 0)
+                    );        
+                    totalTimeTaken += DateTime.Now.Ticks - lastMiliCheck;        
                     for(int i = lineData.rowStart; i < lineData.rowEnd; i++){
-                        if(row >= ySize || row < 0) continue;
-                        double rateChange = (i-lineData.rowStart)/(lineData.rowEnd-lineData.rowStart);
-                        if(
-                            screenInfo[i][row][0] < 
-                            lineData.depthStart + (lineData.depthEnd-lineData.depthStart)*rateChange &&
-                            screenInfo[i][row][1] == frameCounter
-                        ) continue;
-                        int colorData;
-                        //if(i == lineData.rowStart || i==lineData.rowEnd-1) colorData = 0;
-                        
-                        colorData = 
-                        (int)(127 * (lineData.iStart + (lineData.iEnd-lineData.iStart)*rateChange)+
-                              127 * (lineData.jStart + (lineData.jEnd-lineData.jStart)*rateChange)+
-                              0);
-                        
-
+                        if(i >= xSize || i < 0) continue;
                         //Console.WriteLine(lineData.rowStart);
                         screenInfo[i][row] = new double[]{
-                            lineData.depthStart + (lineData.depthEnd-lineData.depthStart)*rateChange,
+                            0,//lineData.depthStart + (lineData.depthEnd-lineData.depthStart)*rateChange,
                             frameCounter,
-                            colorData,
-                            lineData.iStart + (lineData.iEnd-lineData.iStart)*rateChange,
-                            lineData.jStart + (lineData.jEnd-lineData.jStart)*rateChange
+                            0,
+                            0,//lineData.iStart + (lineData.iEnd-lineData.iStart)*rateChange,
+                            0 //lineData.jStart + (lineData.jEnd-lineData.jStart)*rateChange
                         };
                     }
-                    /*
-                    Console.WriteLine(
-                        "Row: "+row +
-                        " Start: "+ lineData.rowStart +
-                        " End "+lineData.rowEnd + 
-                        " i Start: "+lineData.iStart +
-                        " i End: "+lineData.iEnd+
-                        " j Start: "+lineData.jStart +
-                        " j End: "+lineData.jEnd
-                    );
-                    */
                 }
-                //Console.WriteLine(" ");
-                
-
             }
             //returning the screen data
             return screenInfo;
@@ -287,149 +238,70 @@ namespace PenroseEngine{
             //This is written badly, I need to rewrite 
 
             //Please rework this code
-            //vector3 deltaB = vector3.subtract(pointB,pointA);
-            //vector3 deltaC = vector3.subtract(pointC,pointA);
-            vector3 iIntersectActual = new vector3();
-            vector3 jIntersectActual = new vector3();
-            vector3 iPlusJIntersectActual = new vector3();
-            //Boolean iIntersectFound = false;
-            //Boolean jIntersectFound = false;
-            //Boolean iPlusJIntersectFound = false;
+            double iIntersectActual;
+            double jIntersectActual;
+            double iPlusJIntersectActual;
 
-            rowComponent lineData = new rowComponent();
+            rowComponent lineData = new rowComponent(){
+                rowStart = xSize,
+                rowEnd = -1,
+                triangleID = triangleID
+            };
 
             //Where the line intersects with the pure i side of the triangle
-            double iIntersect = -1;
+            double iIntersect;
             //Where the line intersects with the pure j side of the triangle
-            double jIntersect = -1;
+            double jIntersect;
             //Where the line intersects with the i+j side of the triangle
-            double iPlusJIntersect = -1;
+            double iPlusJIntersect;
+            
             //Checks are in place to prevent devide by 0 error
             if(deltaB.y != 0) {
-                //iIntersectFound = true;
                 iIntersect =  (row - pointA.y)/deltaB.y;
-                //rateOfChange = -(deltaC.y/deltaB.y);
-                //If row start has not been interacted with or point.x is less than row start
-                //Then save the point.x as the row start and mark down the i value
-                //Also check the i value to make sure it is between 0 and 1
                 if(iIntersect >= 0 && iIntersect < 1){
-                    iIntersectActual = vector3.add(
-                        pointA, 
-                        vector3.scale(iIntersect, deltaB)
-                    );
-                    if(lineData.rowStart == -1 || iIntersectActual.x < lineData.rowStart){
-                        lineData.rowStart = (int)iIntersectActual.x;
-                        lineData.iStart = iIntersect;
-                        lineData.jStart = 0;
-                        lineData.depthStart = iIntersectActual.z;
-                    }
-                    //If row end has not been interacted with or point.x is more than row end
-                    //Then save the point.x as the row end and mark down the i value
-                    //Also check the i value to make sure it is between 0 and 1
-                    if(lineData.rowEnd == -1 || iIntersectActual.x > lineData.rowEnd){
-                        lineData.rowEnd = (int)iIntersectActual.x;
-                        lineData.iEnd = iIntersect;
-                        lineData.jEnd = 0;
-                        lineData.depthEnd = iIntersectActual.z;
-                    }
-                }
-                
+                    iIntersectActual = deltaB.x * iIntersect + pointA.x;
+                    if(iIntersectActual<lineData.rowStart) lineData.rowStart = (int)iIntersectActual;
+                    else if(iIntersectActual>lineData.rowEnd) lineData.rowEnd = (int)iIntersectActual;                    
+                }                
             }
             if(deltaC.y != 0){
-                //jIntersectFound = true;
                 jIntersect =  (row - pointA.y)/deltaC.y;
-                
-                //If row start has not been interacted with or point.x is less than row start
-                //Then save the point.x as the row start and mark down the i value
-                //Also check the j value to make sure it is between 0 and 1
                 if(jIntersect >= 0 && jIntersect < 1){
-                    jIntersectActual = vector3.add(
-                        pointA, 
-                        vector3.scale(jIntersect, deltaC)
-                    );
-                    if(lineData.rowStart == -1 || jIntersectActual.x < lineData.rowStart){
-                        lineData.rowStart = (int)jIntersectActual.x;
-                        lineData.iStart = 0;
-                        lineData.jStart = jIntersect;
-                        lineData.depthStart = jIntersectActual.z;
-                    }
-                    //If row end has not been interacted with or point.x is more than row end
-                    //Then save the point.x as the row end and mark down the j value
-                    //Also check the j value to make sure it is between 0 and 1
-                    if(lineData.rowEnd == -1 || jIntersectActual.x > lineData.rowEnd){
-                        lineData.rowEnd = (int)jIntersectActual.x;
-                        lineData.iEnd = 0;
-                        lineData.jEnd = jIntersect;
-                        lineData.depthEnd = jIntersectActual.z;
-                    }
+                    jIntersectActual = deltaC.x * jIntersect + pointA.x;
+                    if(jIntersectActual<lineData.rowStart) lineData.rowStart = (int)jIntersectActual;
+                    if(jIntersectActual>lineData.rowEnd) lineData.rowEnd = (int)jIntersectActual;
                 }
                 
             } 
             //Gives the i intersect on the i+j = 1 axis
             //Compute 1 - i to find j
             if(deltaC.y-deltaB.y  != 0){
-                //iPlusJIntersectFound = true;
                 iPlusJIntersect = (row - pointA.y - deltaB.y ) / (deltaC.y-deltaB.y);
-                
-                //If row start has not been interacted with or point.x is less than row start
-                //Then save the point.x as the row start and mark down the i and j values
-                //Also check the i and j values to make sure it they are between 0 and 1
                 if(
-                    1-iPlusJIntersect >= 0 && 
-                    1-iPlusJIntersect < 1 && 
                     iPlusJIntersect >= 0 && 
                     iPlusJIntersect < 1
                 ){
-                    iPlusJIntersectActual = vector3.add(
-                        pointA, 
-                        vector3.add(
-                            vector3.scale(iPlusJIntersect, deltaC),
-                            vector3.scale(1-iPlusJIntersect, deltaB)
-                        )                    
-                    );
-                    if(lineData.rowStart == -1 || iPlusJIntersectActual.x < lineData.rowStart){
-                        lineData.rowStart = (int)iPlusJIntersectActual.x;
-                        lineData.iStart = iPlusJIntersect;
-                        lineData.jStart = 1-iPlusJIntersect;
-                        lineData.depthStart = iPlusJIntersectActual.z;
-                    } 
-                    //If row end has not been interacted with or point.x is more than row end
-                    //Then save the point.x as the row end and mark down the i and j values
-                    //Also check the i and j values to make sure it they are between 0 and 1
-                    if(lineData.rowEnd == -1 || iPlusJIntersectActual.x > lineData.rowEnd){
-                        lineData.rowEnd = (int)iPlusJIntersectActual.x;
-                        lineData.iEnd = iPlusJIntersect;
-                        lineData.jEnd = 1-iPlusJIntersect;
-                        lineData.depthEnd = iPlusJIntersectActual.z;
-                    }
+                    iPlusJIntersectActual = iPlusJIntersect*deltaC.x + deltaB.x*(1-iPlusJIntersect) + pointA.x;
+                    if(iPlusJIntersectActual<lineData.rowStart) lineData.rowStart = (int)iPlusJIntersectActual;
+                    if(iPlusJIntersectActual>lineData.rowEnd) lineData.rowEnd = (int)iPlusJIntersectActual;
                 }
                 
             } 
             //If all the deltas are 0 then return
             if(
                 lineData.rowEnd == -1 &&
-                lineData.rowStart == -1
+                lineData.rowStart == xSize
             )return new rowComponent();
-            
-            if(lineData.rowStart < 0) lineData.rowStart = 0;
-            if(lineData.rowStart > xSize) lineData.rowStart = xSize;
-            if(lineData.rowEnd < 0) lineData.rowEnd = 0;
-            if(lineData.rowEnd > xSize) lineData.rowEnd = xSize;
-            lineData.calculateIntercepts();
+            //lineData.calculateIntercepts();
             lineData.triangleID = triangleID;
             return lineData;
-
-            
-
         }   
         public static Image renderToScreen(double[][][] screenInfo){
             Bitmap screenImage = new Bitmap(xSize, ySize);
             //Creating the tempColor holder that will be used to color the triangles
-            Color tempColor = Color.FromArgb(255,0,0,0);
+            Color tempColor;
             for(int x = 0; x< xSize; x++){
-                //screenOutput[x] = new int[screenInfo[x].Length][];
                 for(int y = 0; y< ySize; y++){
-                    //screenOutput[x][y] = new int[screenInfo[x][y].Length];
                     if(screenInfo[(int)(screenResolution*x)][(int)(screenResolution*y)][1] == frameCounter){
                         //Pulling the color from screenData
                         tempColor = Color.FromArgb(
@@ -772,6 +644,12 @@ namespace PenroseEngine{
         private TrackBar trackBar3;
 
         private long lastMiliCheck;
+        private double averageFramePerSeconds = 0;
+        private double rowAssignmentTimer = 0;
+        private double rowAssignmentCounter = 0;
+        private int highestRowAssignment = 0;
+        private long renderToScreenTimer = 0;
+        private long totalRenderTime = 0;
 
         public MyForm(double[,] rotationalMatrix, gameObject[] renderObjects,double scale)
         {
@@ -864,17 +742,26 @@ namespace PenroseEngine{
         // Timer tick event handler
         private void Timer_Tick(object sender, EventArgs e)
         {
-            // Call the function to generate the bitmap
-            //Bitmap originalImage = GenerateBitmap();
-            //long weh = DateTime.Now.Ticks;
-            // Call the edit function
-            //Bitmap editedImage = EditPicture(originalImage);
-            //renderObject.position.y += 0.001;
             rendererPipeline.frameCounter += 1;
+            rendererPipeline.rowAssignments = 0;
+            rendererPipeline.totalTimeTaken = 0;
+            renderToScreenTimer = 0;
             if(DateTime.Now.Ticks/TimeSpan.TicksPerMillisecond - lastMiliCheck > 1000){
+                Console.WriteLine(
+                    "Average time for row assignments in ticks "+(rowAssignmentTimer/TimeSpan.TicksPerMillisecond/rendererPipeline.frameCounter)+"\n "+
+                    "Average row assignments "+(rowAssignmentCounter/rendererPipeline.frameCounter)+"\n "+
+                    //"Total average time in milliseconds "+((rowAssignmentCounter*rowAssignmentTimer)/(rendererPipeline.frameCounter*10000))+"\n "+
+                    "Highest number of row assignments "+highestRowAssignment+"\n "+
+                    "Total Row Assignment time "+(rowAssignmentTimer/TimeSpan.TicksPerMillisecond)+"\n "+
+                    "Total Render to screen time "+(totalRenderTime/TimeSpan.TicksPerMillisecond)
+                );
                 Console.WriteLine(rendererPipeline.frameCounter);
                 lastMiliCheck = DateTime.Now.Ticks/TimeSpan.TicksPerMillisecond;
                 rendererPipeline.frameCounter = 1;
+                rowAssignmentTimer = 0;
+                rowAssignmentCounter = 0;
+                highestRowAssignment = 0;
+                totalRenderTime = 0;
             }
             /*
             if(rendererPipeline.frameCounter >= 60){                
@@ -889,8 +776,12 @@ namespace PenroseEngine{
             rotationalMatrix = rendererPipeline.rotationMatrixGenerator(trackBar1.Value,trackBar2.Value);
             foreach(gameObject item in renderObjects)
             rendererPipeline.rotateTriangles(rotationalMatrix,item, scale);
+            renderToScreenTimer = DateTime.Now.Ticks;
             Image frame = rendererPipeline.renderToScreen(rendererPipeline.screenInfo);
-
+            totalRenderTime += (DateTime.Now.Ticks-renderToScreenTimer);
+            rowAssignmentTimer += rendererPipeline.totalTimeTaken;
+            rowAssignmentCounter += rendererPipeline.rowAssignments;
+            if(highestRowAssignment < rendererPipeline.rowAssignments) highestRowAssignment = rendererPipeline.rowAssignments;
             // Update the PictureBox with the edited image
             pictureBox1.Image = frame;
         }
