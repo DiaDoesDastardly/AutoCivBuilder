@@ -17,7 +17,6 @@ namespace PenroseEngine{
         public static int xSize = 400;
         public static int ySize = 400;
         public static double screenResolution = 1;
-        public static double triangleDensity = 1.5;
         public static double[][][] screenInfo = new double[(int)(screenResolution*xSize)][][];
         public static double frameCounter = 0;
         public static int rowAssignments = 0;
@@ -140,7 +139,9 @@ namespace PenroseEngine{
                     highestY > ySize) 
                 ) continue;
 
-                lastMiliCheck = DateTime.Now.Ticks;
+                
+                double rateChange;
+                double depthCheck;
                 /*
                 vector3 normalAB = vector3.normalize(deltaAB);
                 vector3 normalAC = vector3.normalize(deltaAC);
@@ -169,6 +170,8 @@ namespace PenroseEngine{
                     /*
                     for(int i = lineData.rowStart; i < lineData.rowEnd; i++){
                         if(i >= xSize || i < 0) continue;
+                        rateChange = (i-lineData.rowStart)/(lineData.rowEnd-lineData.rowStart);
+                        depthCheck = lineData.depthEnd+(lineData.depthEnd-lineData.depthStart)*rateChange;
                         /*
                         screenInfo[i][row] = new double[]{
                             0,//lineData.depthStart + (lineData.depthEnd-lineData.depthStart)*rateChange,
@@ -179,10 +182,11 @@ namespace PenroseEngine{
                         };
                         if((lineData.depthEnd-lineData.depthStart)*i > screenInfo[i][row][0] && screenInfo[i][row][1] == frameCounter)
                         continue;
-                        screenInfo[i][row][0] = (lineData.depthEnd-lineData.depthStart)*i;
+                        screenInfo[i][row][0] = depthCheck;
                         screenInfo[i][row][1] = frameCounter;
-                        screenInfo[i][row][2] = 12*Math.Abs(deltaA.z);
+                        screenInfo[i][row][2] = 12*depthCheck;
                         if(screenInfo[i][row][2] > 255) screenInfo[i][row][2] = 255;
+                        if(screenInfo[i][row][2] < 0) screenInfo[i][row][2] = 0;
                     }
                     */
                     if(
@@ -222,7 +226,7 @@ namespace PenroseEngine{
                     if(screenInfo[lineData.rowEnd][row][2] > 255) screenInfo[lineData.rowEnd][row][2] = 255;
                     
                 }
-                totalTimeTaken += DateTime.Now.Ticks - lastMiliCheck;  
+                
             }
 
             //returning the screen data
