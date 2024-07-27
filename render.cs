@@ -163,8 +163,10 @@ namespace PenroseEngine{
                         deltaAC,
                         row,
                         index
-                    );        
-                          
+                    );  
+                    if(lineData.rowStart >= xSize || lineData.rowStart < 0) continue;
+                    if(lineData.rowEnd >= xSize || lineData.rowEnd < 0) continue;      
+                    /*
                     for(int i = lineData.rowStart; i < lineData.rowEnd; i++){
                         if(i >= xSize || i < 0) continue;
                         /*
@@ -175,7 +177,6 @@ namespace PenroseEngine{
                             0,//lineData.iStart + (lineData.iEnd-lineData.iStart)*rateChange,
                             0 //lineData.jStart + (lineData.jEnd-lineData.jStart)*rateChange
                         };
-                        */
                         if((lineData.depthEnd-lineData.depthStart)*i > screenInfo[i][row][0] && screenInfo[i][row][1] == frameCounter)
                         continue;
                         screenInfo[i][row][0] = (lineData.depthEnd-lineData.depthStart)*i;
@@ -183,6 +184,43 @@ namespace PenroseEngine{
                         screenInfo[i][row][2] = 12*Math.Abs(deltaA.z);
                         if(screenInfo[i][row][2] > 255) screenInfo[i][row][2] = 255;
                     }
+                    */
+                    if(
+                        lineData.depthStart > screenInfo[lineData.rowStart][row][0] && 
+                        screenInfo[lineData.rowStart][row][1] == frameCounter &&
+                        !(lineData.rowStart >= xSize-1)
+                    ){
+                        screenInfo[lineData.rowStart+1][row][0] = screenInfo[lineData.rowStart][row][0];
+                        screenInfo[lineData.rowStart+1][row][1] = screenInfo[lineData.rowStart][row][1];
+                        screenInfo[lineData.rowStart+1][row][2] = screenInfo[lineData.rowStart][row][2];
+                        screenInfo[lineData.rowStart+1][row][3] = screenInfo[lineData.rowStart][row][3];
+                        screenInfo[lineData.rowStart+1][row][4] = screenInfo[lineData.rowStart][row][4];
+                    }
+                    screenInfo[lineData.rowStart][row][0] = lineData.depthStart;
+                    screenInfo[lineData.rowStart][row][1] = frameCounter;
+                    screenInfo[lineData.rowStart][row][2] = 12*Math.Abs(deltaA.z);
+                    screenInfo[lineData.rowStart][row][3] = lineData.rowStart;
+                    screenInfo[lineData.rowStart][row][4] = lineData.rowEnd;
+                    if(screenInfo[lineData.rowStart][row][2] > 255) screenInfo[lineData.rowStart][row][2] = 255;
+
+                    if(
+                        lineData.depthEnd > screenInfo[lineData.rowEnd][row][0] && 
+                        screenInfo[lineData.rowEnd][row][1] == frameCounter &&
+                        !(lineData.rowEnd <=0)
+                    ){
+                        screenInfo[lineData.rowEnd-1][row][0] = screenInfo[lineData.rowEnd][row][0];
+                        screenInfo[lineData.rowEnd-1][row][1] = screenInfo[lineData.rowEnd][row][1];
+                        screenInfo[lineData.rowEnd-1][row][2] = screenInfo[lineData.rowEnd][row][2];
+                        screenInfo[lineData.rowEnd-1][row][3] = screenInfo[lineData.rowEnd][row][3];
+                        screenInfo[lineData.rowEnd-1][row][4] = screenInfo[lineData.rowEnd][row][4];
+                    }
+                    screenInfo[lineData.rowEnd][row][0] = lineData.depthEnd;
+                    screenInfo[lineData.rowEnd][row][1] = frameCounter;
+                    screenInfo[lineData.rowEnd][row][2] = 12*Math.Abs(deltaA.z);
+                    screenInfo[lineData.rowStart][row][3] = lineData.rowStart;
+                    screenInfo[lineData.rowStart][row][4] = lineData.rowEnd;
+                    if(screenInfo[lineData.rowEnd][row][2] > 255) screenInfo[lineData.rowEnd][row][2] = 255;
+                    
                 }
                 totalTimeTaken += DateTime.Now.Ticks - lastMiliCheck;  
             }
@@ -239,11 +277,11 @@ namespace PenroseEngine{
                     jIntersectActual = deltaC.x * jIntersect + pointA.x;
                     if(jIntersectActual<lineData.rowStart) {
                         lineData.rowStart = (int)jIntersectActual;
-                        lineData.depthStart = deltaB.z * jIntersect + pointA.z;
+                        lineData.depthStart = deltaC.z * jIntersect + pointA.z;
                     }
                     if(jIntersectActual>lineData.rowEnd) {
                         lineData.rowEnd = (int)jIntersectActual;
-                        lineData.depthEnd = deltaB.z * jIntersect + pointA.z;
+                        lineData.depthEnd = deltaC.z * jIntersect + pointA.z;
                     }
                 }
                 
@@ -280,21 +318,61 @@ namespace PenroseEngine{
             Color tempColor;
             int screenX;
             int screenY;
-            for(int x = 0; x< xSize; x++){
-                screenX = (int)(screenResolution*x);
-                for(int y = 0; y< ySize; y++){
-                    screenY = (int)(screenResolution*y);
+            int endLine = -1;
+            int savedColor = 0;
+            for(int y = 0; y< ySize; y++){
+                screenY = (int)(screenResolution*y);
+                
+                endLine = -1;
+                savedColor = 0;
+                for(int x = 0; x< xSize; x++){
+                    screenX = (int)(screenResolution*x);
                     if(screenInfo[screenX][screenY][1] == frameCounter){
+                        //endLine = (int)screenInfo[screenX][screenY][4];
+                        //savedColor = (int)screenInfo[screenX][screenY][2];
+                        
+                        if(endLine == -1 && !(screenX >= (int)screenInfo[screenX][screenY][4])){
+                            endLine = (int)screenInfo[screenX][screenY][4];
+                            savedColor = (int)screenInfo[screenX][screenY][2];
+                        }
+                        /*
+                        else if(endLine != (int)screenInfo[screenX][screenY][4]){
+                            endLine = (int)screenInfo[screenX][screenY][4];
+                            savedColor = (int)screenInfo[screenX][screenY][2];
+                        }*/
+                        if(endLine == screenX){
+                            endLine = -1;
+                            savedColor = 0;
+                        }
+                        
                         //Pulling the color from screenData
                         tempColor = Color.FromArgb(
                             255,
-                            (int)screenInfo[screenX][screenY][2],
-                            (int)screenInfo[screenX][screenY][2],
-                            (int)screenInfo[screenX][screenY][2]
+                            savedColor,
+                            savedColor,
+                            savedColor
                         );
-                        screenImage.SetPixel(x,y,tempColor);
+                        screenImage.SetPixel(screenX,screenY,tempColor);
                     }else{
-                        screenInfo[screenX][screenY][1] = -1;
+                        if(endLine != -1){         
+                            tempColor = Color.FromArgb(
+                                255,
+                                savedColor,
+                                savedColor,
+                                savedColor
+                            );
+                            screenImage.SetPixel(screenX,screenY,tempColor);
+                            screenInfo[screenX][screenY][1] = frameCounter;
+                            if(endLine <= screenX){
+                                endLine = -1;
+                                savedColor = 0;
+                            }
+                            
+                            screenInfo[screenX][screenY][1] = -1;
+                        }else{
+                            screenInfo[screenX][screenY][1] = -1;
+                        }
+                        
                     }
                 }
             }
