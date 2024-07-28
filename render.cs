@@ -16,8 +16,8 @@ namespace PenroseEngine{
     {
         public static int xSize = 400;
         public static int ySize = 400;
-        public static double screenResolution = 1;
-        public static double[][][] screenInfo = new double[(int)(screenResolution*xSize)][][];
+        public static double screenResolution = .75;
+        public static double[][][] screenInfo = new double[(int)(xSize)][][];
         public static double frameCounter = 0;
         public static int rowAssignments = 0;
         public static long totalTimeTaken = 0;
@@ -60,10 +60,12 @@ namespace PenroseEngine{
             vector3 deltaAB;
             vector3 deltaAC;
             vector3 normalDelta;
-            rowComponent lineData;
+            rowComponent lineData = new rowComponent();
             //List<rowComponent> linesData = new List<rowComponent>();
             int lowestY;
             int highestY;
+            int lowestX;
+            int highestX;
             //Rotating all of the points of the object by the rotational matrix
             //For now the offset will be {0,0,0}
 
@@ -105,6 +107,7 @@ namespace PenroseEngine{
 
                 //Creating a modified pointA so we don't have to do it multiple times per frame
                 vector3 deltaA = vector3.add(vertexHolder[renderableObject.triangles[index][0]], new (xSize/2,ySize/2,0));
+                vector3 weh = vector3.add(vertexHolder[renderableObject.triangles[index][1]], new (xSize/2,ySize/2,0));
 
                 //Please rewrite
                 //This code finds the highest and lowest y on the triangle
@@ -131,7 +134,7 @@ namespace PenroseEngine{
                     lowestY > vertexHolder[renderableObject.triangles[index][2]].y+ySize/2 
                 ) 
                 lowestY = (int)vertexHolder[renderableObject.triangles[index][2]].y+ySize/2;
-                
+
                 if(
                     (lowestY < 0 && 
                     highestY < 0) ||
@@ -139,39 +142,124 @@ namespace PenroseEngine{
                     highestY > ySize) 
                 ) continue;
 
+                lowestX = xSize;
+                highestX = -1;
+                if(vertexHolder[renderableObject.triangles[index][0]].x+xSize/2 > 0){
+                    highestX = (int)vertexHolder[renderableObject.triangles[index][0]].x+xSize/2;
+                    lowestX = (int)vertexHolder[renderableObject.triangles[index][0]].x+xSize/2;
+                }
+                if(
+                    highestX < vertexHolder[renderableObject.triangles[index][1]].x+xSize/2
+                ) 
+                highestX = (int)vertexHolder[renderableObject.triangles[index][1]].x+xSize/2;
+                if(
+                    lowestX > vertexHolder[renderableObject.triangles[index][1]].x+xSize/2
+                ) 
+                lowestX = (int)vertexHolder[renderableObject.triangles[index][1]].x+xSize/2;
+
+                if(
+                    highestX < vertexHolder[renderableObject.triangles[index][2]].x+xSize/2
+                ) 
+                highestX = (int)vertexHolder[renderableObject.triangles[index][2]].x+xSize/2;
+                if(
+                    lowestX > vertexHolder[renderableObject.triangles[index][2]].x+xSize/2 
+                ) 
+                lowestX = (int)vertexHolder[renderableObject.triangles[index][2]].x+xSize/2;
+                
+                if(
+                    (lowestX < 0 && 
+                    highestX < 0) ||
+                    (lowestX > xSize && 
+                    highestX > xSize) 
+                ) continue;
+
                 
                 double rateChange;
                 double depthCheck;
                 /*
+                vector3 normalBC = vector3.normalize(vector3.subtract(deltaAC,deltaAB));
                 vector3 normalAB = vector3.normalize(deltaAB);
                 vector3 normalAC = vector3.normalize(deltaAC);
+
+                double changeInDepthA = normalBC.x/normalBC.y; 
+                double yInterceptA = (normalBC.y*weh.x-normalBC.x*weh.y)/normalBC.y;
                 
-                double changeInDepth; 
-                double yIntercept;
+                double changeInDepthAB = normalAB.x/normalAB.y; 
+                double yInterceptAB = (normalAB.y*deltaA.x-normalAB.x*deltaA.y)/normalAB.y;
+
+                double changeInDepthAC = normalAC.x/normalAC.y; 
+                double yInterceptAC = (normalAC.y*deltaA.x-normalAC.x*deltaA.y)/normalAC.y;
+                */
+                /*
                 changeInDepth = 
                         (1/normalAB.y*normalAB.z-1/normalAC.y*normalAC.z)/
                         (1/normalAB.y*normalAB.x-1/normalAC.y*normalAC.x); 
-                
                 */
-                for(int row = lowestY-1; row < highestY+1; row++){
-                    if(row < 0 || row >= ySize)continue;
+                
+                for(int row = (int)(lowestY*screenResolution)-1; row < (int)(highestY*screenResolution)+1; row++){
+                    if(row < 0 || row >= ySize*screenResolution)continue;
                     //yIntercept = (row - vertexHolder[renderableObject.triangles[index][0]].y)/normalAC.y*normalAC.z;
                     rowAssignments++;
                     //lastMiliCheck = DateTime.Now.Ticks;
+                    
                     lineData = getRowFromTriangle(
                         deltaA,
                         deltaAB,
                         deltaAC,
-                        row,
+                        (int)(row/screenResolution),
                         index
                     );  
-                    if(lineData.rowStart >= xSize || lineData.rowStart < 0) continue;
-                    if(lineData.rowEnd >= xSize || lineData.rowEnd < 0) continue;      
+                    
                     /*
-                    for(int i = lineData.rowStart; i < lineData.rowEnd; i++){
-                        if(i >= xSize || i < 0) continue;
-                        rateChange = (i-lineData.rowStart)/(lineData.rowEnd-lineData.rowStart);
-                        depthCheck = lineData.depthEnd+(lineData.depthEnd-lineData.depthStart)*rateChange;
+                    lineData.rowStart = xSize;
+                    lineData.rowEnd = -1;
+                    if(
+                        lineData.rowStart > changeInDepthA * row + yInterceptA &&
+                        changeInDepthA * row + yInterceptA >= lowestX &&
+                        changeInDepthA * row + yInterceptA <= highestX
+                    )
+                    lineData.rowStart = (int)(changeInDepthA * row + yInterceptA);
+                    if(
+                        lineData.rowEnd < changeInDepthA * row + yInterceptA &&
+                        changeInDepthA * row + yInterceptA >= lowestX &&
+                        changeInDepthA * row + yInterceptA <= highestX
+                    )
+                    lineData.rowEnd = (int)(changeInDepthA * row + yInterceptA);
+
+                    if(
+                        lineData.rowStart > changeInDepthAB * row + yInterceptAB &&
+                        changeInDepthAB * row + yInterceptAB >= lowestX &&
+                        changeInDepthAB * row + yInterceptAB <= highestX
+                    )
+                    lineData.rowStart = (int)(changeInDepthAB * row + yInterceptAB);
+                    if(
+                        lineData.rowEnd < changeInDepthAB * row + yInterceptAB &&
+                        changeInDepthAB * row + yInterceptAB >= lowestX &&
+                        changeInDepthAB * row + yInterceptAB <= highestX
+                    )
+                    lineData.rowEnd = (int)(changeInDepthAB * row + yInterceptAB);
+
+                    if(
+                        lineData.rowStart > changeInDepthAC * row + yInterceptAC &&
+                        changeInDepthAC * row + yInterceptAC >= lowestX &&
+                        changeInDepthAC * row + yInterceptAC <= highestX
+                    )
+                    lineData.rowStart = (int)(changeInDepthAC * row + yInterceptAC);
+                    if(
+                        lineData.rowEnd < changeInDepthAC * row + yInterceptAC &&
+                        changeInDepthAC * row + yInterceptAC >= lowestX &&
+                        changeInDepthAC * row + yInterceptAC <= highestX
+                    )
+                    lineData.rowEnd = (int)(changeInDepthAC * row + yInterceptAC);
+                    */
+                    //if(lineData.rowStart == lineData.rowEnd) continue;
+                    //if(lineData.rowStart >= xSize || lineData.rowStart < 0) continue;
+                    //if(lineData.rowEnd >= xSize || lineData.rowEnd < 0) continue;    
+                    
+                    for(int i = (int)(lineData.rowStart*screenResolution); i < (int)(lineData.rowEnd*screenResolution); i++){
+                        if(i >= xSize*screenResolution || i < 0) continue;
+                        rateChange = (i/screenResolution-lineData.rowStart)/(lineData.rowEnd-lineData.rowStart);
+                        depthCheck = lineData.depthStart+(lineData.depthEnd-lineData.depthStart)*rateChange;
                         /*
                         screenInfo[i][row] = new double[]{
                             0,//lineData.depthStart + (lineData.depthEnd-lineData.depthStart)*rateChange,
@@ -180,35 +268,49 @@ namespace PenroseEngine{
                             0,//lineData.iStart + (lineData.iEnd-lineData.iStart)*rateChange,
                             0 //lineData.jStart + (lineData.jEnd-lineData.jStart)*rateChange
                         };
-                        if((lineData.depthEnd-lineData.depthStart)*i > screenInfo[i][row][0] && screenInfo[i][row][1] == frameCounter)
+                        */
+                        if(
+                            i/screenResolution >= xSize ||
+                            row/screenResolution >= ySize 
+                        ) continue;
+                        if(
+                            (depthCheck > screenInfo[(int)(i/screenResolution)][(int)(row/screenResolution)][0] && 
+                            screenInfo[(int)(i/screenResolution)][(int)(row/screenResolution)][1] == frameCounter)
+                        )
                         continue;
-                        screenInfo[i][row][0] = depthCheck;
-                        screenInfo[i][row][1] = frameCounter;
-                        screenInfo[i][row][2] = 12*depthCheck;
-                        if(screenInfo[i][row][2] > 255) screenInfo[i][row][2] = 255;
-                        if(screenInfo[i][row][2] < 0) screenInfo[i][row][2] = 0;
+                        screenInfo[(int)(i/screenResolution)][(int)(row/screenResolution)][0] = depthCheck;
+                        screenInfo[(int)(i/screenResolution)][(int)(row/screenResolution)][1] = frameCounter;
+                        if(i == lineData.rowStart*screenResolution || i == lineData.rowEnd*screenResolution)                        
+                        screenInfo[(int)(i/screenResolution)][(int)(row/screenResolution)][2] = 0;
+                        else
+                        screenInfo[(int)(i/screenResolution)][(int)(row/screenResolution)][2] = 120;
+                        //screenInfo[(int)(i/screenResolution)][(int)(row/screenResolution)][2] = Math.Abs(250*(i/screenResolution-lineData.rowStart)/(lineData.rowEnd-lineData.rowStart));
+                        //if(screenInfo[(int)(i/screenResolution)][(int)(row/screenResolution)][2] > 255) screenInfo[(int)(i/screenResolution)][(int)(row/screenResolution)][2] = 255;
+                        //if(screenInfo[(int)(i/screenResolution)][(int)(row/screenResolution)][2] < 0) screenInfo[(int)(i/screenResolution)][(int)(row/screenResolution)][2] = 0;
                     }
-                    */
+                    
+                    /*
                     if(
-                        lineData.depthStart > screenInfo[lineData.rowStart][row][0] && 
                         screenInfo[lineData.rowStart][row][1] == frameCounter &&
                         !(lineData.rowStart >= xSize-1)
                     ){
                         screenInfo[lineData.rowStart+1][row][0] = screenInfo[lineData.rowStart][row][0];
                         screenInfo[lineData.rowStart+1][row][1] = screenInfo[lineData.rowStart][row][1];
                         screenInfo[lineData.rowStart+1][row][2] = screenInfo[lineData.rowStart][row][2];
-                        screenInfo[lineData.rowStart+1][row][3] = screenInfo[lineData.rowStart][row][3];
+                        screenInfo[lineData.rowStart+1][row][3] = lineData.rowStart+1;
                         screenInfo[lineData.rowStart+1][row][4] = screenInfo[lineData.rowStart][row][4];
                     }
-                    screenInfo[lineData.rowStart][row][0] = lineData.depthStart;
+                    */
+                    /*
+                    screenInfo[lineData.rowStart][row][0] = deltaA.z;
                     screenInfo[lineData.rowStart][row][1] = frameCounter;
                     screenInfo[lineData.rowStart][row][2] = 12*Math.Abs(deltaA.z);
                     screenInfo[lineData.rowStart][row][3] = lineData.rowStart;
                     screenInfo[lineData.rowStart][row][4] = lineData.rowEnd;
                     if(screenInfo[lineData.rowStart][row][2] > 255) screenInfo[lineData.rowStart][row][2] = 255;
-
+                    */
+                    /*
                     if(
-                        lineData.depthEnd > screenInfo[lineData.rowEnd][row][0] && 
                         screenInfo[lineData.rowEnd][row][1] == frameCounter &&
                         !(lineData.rowEnd <=0)
                     ){
@@ -216,14 +318,17 @@ namespace PenroseEngine{
                         screenInfo[lineData.rowEnd-1][row][1] = screenInfo[lineData.rowEnd][row][1];
                         screenInfo[lineData.rowEnd-1][row][2] = screenInfo[lineData.rowEnd][row][2];
                         screenInfo[lineData.rowEnd-1][row][3] = screenInfo[lineData.rowEnd][row][3];
-                        screenInfo[lineData.rowEnd-1][row][4] = screenInfo[lineData.rowEnd][row][4];
+                        screenInfo[lineData.rowEnd-1][row][4] = lineData.rowEnd-1;
                     }
-                    screenInfo[lineData.rowEnd][row][0] = lineData.depthEnd;
-                    screenInfo[lineData.rowEnd][row][1] = frameCounter;
-                    screenInfo[lineData.rowEnd][row][2] = 12*Math.Abs(deltaA.z);
-                    screenInfo[lineData.rowStart][row][3] = lineData.rowStart;
-                    screenInfo[lineData.rowStart][row][4] = lineData.rowEnd;
-                    if(screenInfo[lineData.rowEnd][row][2] > 255) screenInfo[lineData.rowEnd][row][2] = 255;
+                    */
+                    /*
+                    screenInfo[lineData.rowEnd-1][row][0] = deltaA.z;
+                    screenInfo[lineData.rowEnd-1][row][1] = frameCounter;
+                    screenInfo[lineData.rowEnd-1][row][2] = 12*Math.Abs(deltaA.z);
+                    screenInfo[lineData.rowEnd-1][row][3] = lineData.rowStart;
+                    screenInfo[lineData.rowEnd-1][row][4] = lineData.rowEnd-1;
+                    if(screenInfo[lineData.rowEnd-1][row][2] > 255) screenInfo[lineData.rowEnd-1][row][2] = 255;
+                    */
                     
                 }
                 
@@ -288,7 +393,6 @@ namespace PenroseEngine{
                         lineData.depthEnd = deltaC.z * jIntersect + pointA.z;
                     }
                 }
-                
             } 
             //Gives the i intersect on the i+j = 1 axis
             //Compute 1 - i to find j
@@ -325,30 +429,35 @@ namespace PenroseEngine{
             int endLine = -1;
             int savedColor = 0;
             for(int y = 0; y< ySize; y++){
-                screenY = (int)(screenResolution*y);
-                
+                screenY = (int)((int)(y*screenResolution)/screenResolution);
+                //if(screenY >= ySize) continue;
                 endLine = -1;
                 savedColor = 0;
                 for(int x = 0; x< xSize; x++){
-                    screenX = (int)(screenResolution*x);
+                    screenX = (int)(((int)(x*screenResolution))/screenResolution);
+                    //if(screenX >= xSize) continue;
                     if(screenInfo[screenX][screenY][1] == frameCounter){
                         //endLine = (int)screenInfo[screenX][screenY][4];
-                        //savedColor = (int)screenInfo[screenX][screenY][2];
-                        
+                        savedColor = (int)screenInfo[screenX][screenY][2];
+                        //if((int)screenInfo[screenX][screenY][4] == (int)screenInfo[screenX][screenY][3])
+                        //continue;
+                        /*
                         if(endLine == -1 && !(screenX >= (int)screenInfo[screenX][screenY][4])){
                             endLine = (int)screenInfo[screenX][screenY][4];
                             savedColor = (int)screenInfo[screenX][screenY][2];
-                        }
+                        }*/
                         /*
                         else if(endLine != (int)screenInfo[screenX][screenY][4]){
                             endLine = (int)screenInfo[screenX][screenY][4];
                             savedColor = (int)screenInfo[screenX][screenY][2];
-                        }*/
-                        if(endLine == screenX){
+                        }  
+                        */     
+                        /*                 
+                        if(endLine <= screenX){
                             endLine = -1;
                             savedColor = 0;
                         }
-                        
+                        */
                         //Pulling the color from screenData
                         tempColor = Color.FromArgb(
                             255,
@@ -356,9 +465,11 @@ namespace PenroseEngine{
                             savedColor,
                             savedColor
                         );
-                        screenImage.SetPixel(screenX,screenY,tempColor);
+                        screenImage.SetPixel(x,y,tempColor);
+                        //screenImage.SetPixel(endLine,screenY,tempColor);
                     }else{
                         if(endLine != -1){         
+                            /*
                             tempColor = Color.FromArgb(
                                 255,
                                 savedColor,
@@ -371,7 +482,7 @@ namespace PenroseEngine{
                                 endLine = -1;
                                 savedColor = 0;
                             }
-                            
+                            */
                             screenInfo[screenX][screenY][1] = -1;
                         }else{
                             screenInfo[screenX][screenY][1] = -1;
@@ -731,7 +842,7 @@ namespace PenroseEngine{
             pictureBox1 = new PictureBox();
             //pictureBox1.SizeMode = PictureBoxSizeMode.AutoSize;
             for(int z = 0; z < rendererPipeline.screenInfo.Length; z++){
-                rendererPipeline.screenInfo[z] = new double[(int)(rendererPipeline.ySize*rendererPipeline.screenResolution)][];
+                rendererPipeline.screenInfo[z] = new double[(int)(rendererPipeline.ySize)][];
                 for(int x = 0; x < rendererPipeline.screenInfo[z].Length; x++){
                     rendererPipeline.screenInfo [z][x] = new double[5];
                 }
@@ -773,7 +884,7 @@ namespace PenroseEngine{
                 // Set the properties of the TrackBar
                 Minimum = 1,
                 Maximum = 100,
-                Value = 1, // Initial value
+                Value = (int)scale, // Initial value
                 TickStyle = TickStyle.TopLeft,
                 TickFrequency = 10,
                 Width = 200,
@@ -822,7 +933,8 @@ namespace PenroseEngine{
                     //"Total average time in milliseconds "+((rowAssignmentCounter*rowAssignmentTimer)/(rendererPipeline.frameCounter*10000))+"\n "+
                     "Highest number of row assignments "+highestRowAssignment+"\n "+
                     "Total Row Assignment time "+(rowAssignmentTimer/TimeSpan.TicksPerMillisecond)+"\n "+
-                    "Total Render to screen time "+(totalRenderTime/TimeSpan.TicksPerMillisecond)
+                    "Total Render to screen time "+(totalRenderTime/TimeSpan.TicksPerMillisecond)+"\n "+
+                    "Screen resolution: "+(rendererPipeline.screenResolution)
                 );
                 Console.WriteLine(rendererPipeline.frameCounter);
                 lastMiliCheck = DateTime.Now.Ticks/TimeSpan.TicksPerMillisecond;
@@ -835,6 +947,7 @@ namespace PenroseEngine{
 
             scale = trackBar3.Value;
             rotationalMatrix = rendererPipeline.rotationMatrixGenerator(trackBar1.Value,trackBar2.Value);
+            rendererPipeline.screenResolution = 1;//(1-(double)trackBar3.Value/(double)trackBar3.Maximum)*.5+.5;
             foreach(gameObject item in renderObjects)
             rendererPipeline.rotateTriangles(rotationalMatrix,item, scale);
             renderToScreenTimer = DateTime.Now.Ticks;

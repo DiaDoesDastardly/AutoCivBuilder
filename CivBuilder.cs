@@ -56,7 +56,7 @@ public class CivBuilder{
         //Creating upgradable structures
         farm = new upgradableBuilding( 
             "Farm", //Building type name
-            "cube.obj", //Building model
+            "buildingTwo.obj", //Building model
             //Upgrade names
             [
                 "Berry Bush",
@@ -101,7 +101,7 @@ public class CivBuilder{
         );
         logger = new upgradableBuilding( 
             "Logger", //Building type name
-            "cube.obj", //Building model
+            "buildingFour.obj", //Building model
             //Upgrade names
             [
                 "Stick Gatherers",
@@ -123,7 +123,7 @@ public class CivBuilder{
         );
         mine = new upgradableBuilding( 
             "Mine", //Building type name
-            "cube.obj", //Building model
+            "buildingThree.obj", //Building model
             //Upgrade names
             [
                 "Stone Gatherers",
@@ -145,7 +145,7 @@ public class CivBuilder{
         );
         storehouse = new upgradableBuilding( 
             "Storehouse", //Building type name
-            "cube.obj", //Building model
+            "buildingFive.obj", //Building model
             //Upgrade names
             [
                 "Cool place"

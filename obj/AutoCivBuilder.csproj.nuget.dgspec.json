@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\borgs\\Documents\\AutoCivBuilder\\AutoCivBuilder\\AutoCivBuilder.csproj": {}
+    "c:\\Users\\borgs\\Documents\\AutoCivBuilder\\AutoCivBuilder\\AutoCivBuilder.csproj": {}
   },
   "projects": {
-    "C:\\Users\\borgs\\Documents\\AutoCivBuilder\\AutoCivBuilder\\AutoCivBuilder.csproj": {
+    "c:\\Users\\borgs\\Documents\\AutoCivBuilder\\AutoCivBuilder\\AutoCivBuilder.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\borgs\\Documents\\AutoCivBuilder\\AutoCivBuilder\\AutoCivBuilder.csproj",
+        "projectUniqueName": "c:\\Users\\borgs\\Documents\\AutoCivBuilder\\AutoCivBuilder\\AutoCivBuilder.csproj",
         "projectName": "AutoCivBuilder",
-        "projectPath": "C:\\Users\\borgs\\Documents\\AutoCivBuilder\\AutoCivBuilder\\AutoCivBuilder.csproj",
+        "projectPath": "c:\\Users\\borgs\\Documents\\AutoCivBuilder\\AutoCivBuilder\\AutoCivBuilder.csproj",
         "packagesPath": "C:\\Users\\borgs\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\borgs\\Documents\\AutoCivBuilder\\AutoCivBuilder\\obj\\",
+        "outputPath": "c:\\Users\\borgs\\Documents\\AutoCivBuilder\\AutoCivBuilder\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\borgs\\AppData\\Roaming\\NuGet\\NuGet.Config"
