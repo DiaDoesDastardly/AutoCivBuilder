@@ -35,7 +35,7 @@ public class Building{
 
     public Building(){
         name = "empty";
-        model = "";
+        model = "trees.obj";
         emptyTile = true;
         buildingRank = 0;
         resources = new Resources[0];
@@ -83,6 +83,7 @@ public class Building{
 
 public class upgradableBuilding : Building{
     public String[] upgradeNames;
+    public String[] modelNames;
     public upgradableBuilding(){
         //Empty Case
     }
@@ -104,7 +105,7 @@ public class upgradableBuilding : Building{
 
     public upgradableBuilding(
             String buildingTypeName,
-            String model,
+            String[] modelNames,
             String[] upgradeNames,
             int buildingRank,
             int popHousing,
@@ -114,7 +115,7 @@ public class upgradableBuilding : Building{
             Boolean buildOnOutskirts
         ){
         this.upgradeNames = upgradeNames;
-        this.model = model;
+        this.modelNames = modelNames;
         name = buildingTypeName;
         this.buildingRank = buildingRank;
         this.popHousing = popHousing;
@@ -125,10 +126,18 @@ public class upgradableBuilding : Building{
     }
 
     public Building createPrefab(int buildLevel){
+        //Creating a variable to hold the name of our model
+        //This is so we can still output a model even if the upgradableBuilding doesn't hold
+        //a model name for the level of building
+        //Using a cube for right now to show when a building has no model
+        String modelName = "cube.obj";
         //If the input build level is higher than the amount of upgrades a building has
         //we then output an empty building
         if(buildLevel>upgradeNames.Length-1) return new Building();
-
+        //If the input build level is lower than the number of model names then we output the
+        //name of the model at that build level
+        if(buildLevel<modelNames.Length) modelName = modelNames[buildLevel];
+        else modelName = modelNames[0];
         //Creating new resource array for the new building
         Resources[] upgradedResource = new Resources[resources.Length];
 
@@ -144,7 +153,7 @@ public class upgradableBuilding : Building{
 
         return new Building(
             upgradeNames[buildLevel],
-            model,
+            modelName,
             buildLevel,
             buildingRank * (buildLevel+1),
             popHousing * (buildLevel+1),

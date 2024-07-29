@@ -56,7 +56,10 @@ public class CivBuilder{
         //Creating upgradable structures
         farm = new upgradableBuilding( 
             "Farm", //Building type name
-            "buildingTwo.obj", //Building model
+            //Model Names
+            [
+                "buildingTwo.obj"
+            ],
             //Upgrade names
             [
                 "Berry Bush",
@@ -78,7 +81,13 @@ public class CivBuilder{
         );
         house = new upgradableBuilding( 
             "House", //Building type name
-            "buildingOne.obj", //Building model
+            //Model names
+            [
+                "huts.obj",
+                "house.obj",
+                "house.obj",
+                "buildingOne.obj"
+            ], 
             //Upgrade names
             [
                 "Small hut",
@@ -101,7 +110,10 @@ public class CivBuilder{
         );
         logger = new upgradableBuilding( 
             "Logger", //Building type name
-            "buildingFour.obj", //Building model
+            //Model names
+            [
+                "buildingFour.obj"
+            ], 
             //Upgrade names
             [
                 "Stick Gatherers",
@@ -123,7 +135,10 @@ public class CivBuilder{
         );
         mine = new upgradableBuilding( 
             "Mine", //Building type name
-            "buildingThree.obj", //Building model
+            //Model names
+            [
+                "buildingThree.obj"
+            ], 
             //Upgrade names
             [
                 "Stone Gatherers",
@@ -145,10 +160,13 @@ public class CivBuilder{
         );
         storehouse = new upgradableBuilding( 
             "Storehouse", //Building type name
-            "buildingFive.obj", //Building model
+            //Model names
+            [
+                "buildingFive.obj"
+            ],
             //Upgrade names
             [
-                "Cool place"
+                "Storehouse"
             ], 
             0, // Building rank
             0, // Pop housing
