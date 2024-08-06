@@ -58,6 +58,9 @@ public class CivBuilder{
             "Farm", //Building type name
             //Model Names
             [
+                "berryBushes.obj",
+                "berryBushes.obj",
+                "buildingTwo.obj",
                 "buildingTwo.obj"
             ],
             //Upgrade names
