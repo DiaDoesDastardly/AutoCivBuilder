@@ -20,8 +20,8 @@ public class guiHandler{
                     0, //red color value of the pixel on the screen
                     0, //green color value of the pixel on the screen
                     0, //blue color value of the pixel on the screen
-                    -1, //layer that the pixel is on
-                    -1  //index of the guiObject the pixel is a part of
+                    -1,//layer that the pixel is on
+                    -1 //index of the guiObject the pixel is a part of
                 };
             }
         }
@@ -38,7 +38,7 @@ public class guiHandler{
                 guiObjects[index].topRight.X < 0 ||
                 guiObjects[index].topRight.Y < 0
             ) continue;
-            //Finding the difference in size 
+            //Finding the difference in size between the texture and screen coordinates
             textureToScreenSizeX = 
                 (double)guiObjects[index].texture.Width/(
                     guiObjects[index].topRight.X-guiObjects[index].bottomLeft.X
@@ -75,24 +75,16 @@ public class guiHandler{
             }
         }
     }
-    /*
+    
     public void click(Vector2 clickLocation){
-        for(int index = 0; index < guiObjects.Count; index++){
-            if(guiObjects[index].clickable){
-                //If clickable then check if the click is inside of the object
-                if(
-                    clickLocation.X < guiObjects[index].topRight.X ||
-                    clickLocation.X > guiObjects[index].bottomLeft.X ||
-                    clickLocation.Y < guiObjects[index].topRight.Y ||
-                    clickLocation.Y > guiObjects[index].bottomLeft.Y 
-                ){
-                    //If the click is inside of the object then run the delegate actions of the object
-                    guiObjects[index].clickAction();
-                }
-            }
-        }
+        //Getting the index value at the click location 
+        int index = guiScreen[(int)clickLocation.X][(int)clickLocation.Y][4];
+        //If the index is below 0 then return
+        if(index >= 0) return;
+        //Run the functions that are attached to the guiObject
+        guiObjects[index].clickAction();
     }
-    */
+    
 }
 
 public class guiObject{
@@ -147,19 +139,5 @@ public class guiObject{
     static void defaultClickAction(){
         //This exists as the default delegate action 
         Console.WriteLine("Default delegate action");
-    }
-    //Creating 
-    public Bitmap renderGuiObject(){
-        if(
-            bottomLeft.X > topRight.X ||
-            bottomLeft.Y > topRight.Y
-        )
-        return new Bitmap(0,0);
-
-        Bitmap outputBitmap = new Bitmap(
-            (int)(topRight.X-bottomLeft.X),
-            (int)(topRight.Y-bottomLeft.Y)
-        );
-        return outputBitmap;
     }
 }
