@@ -23,6 +23,8 @@ public partial class MyForm : Form
     private long renderToScreenTimer = 0;
     private long totalRenderTime = 0;
 
+    private guiHandler guiHandler;
+
     private Boolean nextTurnActive = true;
 
     public MyForm(double[,] rotationalMatrix, gameObject[] renderObjects,double scale)
@@ -37,13 +39,54 @@ public partial class MyForm : Form
         pictureBox1 = new PictureBox();
         //pictureBox1.SizeMode = PictureBoxSizeMode.AutoSize;
         for(int z = 0; z < PenroseEngine.rendererPipeline.screenInfo.Length; z++){
-            PenroseEngine.rendererPipeline.screenInfo[z] = new double[(int)(PenroseEngine.rendererPipeline.ySize)][];
+            PenroseEngine.rendererPipeline.screenInfo[z] = new double[(int)PenroseEngine.rendererPipeline.ySize][];
             for(int x = 0; x < PenroseEngine.rendererPipeline.screenInfo[z].Length; x++){
                 PenroseEngine.rendererPipeline.screenInfo [z][x] = new double[5];
             }
         }
+        //guiHandler initialization 
+        guiHandler = new guiHandler(
+            (int)PenroseEngine.rendererPipeline.xSize,
+            (int)PenroseEngine.rendererPipeline.ySize
+        );
+        
+        //Creation of guiObjects
+        guiHandler.guiObjects.Add(
+            new guiObject(
+                "Test object",//Name of guiObject
+                new (0,0), //Location of the bottom left corner of the object
+                new (100,100), //Location of the top right corner of the object
+                0, //Layer of the object
+                false, //Is the object clickable
+                true, //Is the object visible
+                new Bitmap(Image.FromFile("..\\..\\..\\guiTextures\\raincat.PNG")) //The texture of the gui object
+            )
+        );
+        guiHandler.guiObjects.Add(
+            new guiObject(
+                "Next Turn Button",//Name of guiObject
+                new (339,384), //Location of the bottom left corner of the object
+                new (399,399), //Location of the top right corner of the object
+                0, //Layer of the object
+                true, //Is the object clickable
+                true, //Is the object visible
+                new Bitmap(Image.FromFile("..\\..\\..\\guiTextures\\NextTurnButton.png")) //The texture of the gui object
+            )
+        );
+        //guiHandler.guiObjects[0].clickAction += cat;
+        guiHandler.guiObjects[1].clickAction += nextTurnButton;
+        guiHandler.renderGuiObjects();
+
         InitializeComponent();
         InitializeTimer();
+    }
+    private void nextTurnButton(){
+        //Console.WriteLine("Cat has been clicked");
+        nextTurnActive = true;
+    }
+    private void mouseClickDetect(object sender, MouseEventArgs e){
+        //MouseEventArgs weh = (MouseEventArgs)e;
+        guiHandler.click(new(e.X,e.Y));
     }
     private void InitializeComponent()
     {
@@ -109,6 +152,7 @@ public partial class MyForm : Form
         
         // Form
         this.Controls.Add(this.pictureBox1);
+        this.pictureBox1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.mouseClickDetect);
         this.ClientSize = new System.Drawing.Size(400, 480);
         this.Name = "Form1";
         this.Text = "Form1";
@@ -177,7 +221,7 @@ public partial class MyForm : Form
         foreach(gameObject item in renderObjects)
         PenroseEngine.rendererPipeline.rotateTriangles(rotationalMatrix,item, scale);
         renderToScreenTimer = DateTime.Now.Ticks;
-        Image frame = PenroseEngine.rendererPipeline.renderToScreen(PenroseEngine.rendererPipeline.screenInfo);
+        Image frame = PenroseEngine.rendererPipeline.renderToScreen(PenroseEngine.rendererPipeline.screenInfo, guiHandler);
         totalRenderTime += (DateTime.Now.Ticks-renderToScreenTimer);
         rowAssignmentTimer += PenroseEngine.rendererPipeline.totalTimeTaken;
         rowAssignmentCounter += PenroseEngine.rendererPipeline.rowAssignments;

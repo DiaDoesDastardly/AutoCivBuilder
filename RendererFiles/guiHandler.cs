@@ -2,7 +2,7 @@ using System.Numerics;
 
 public class guiHandler{
     //List of contained guiObjects
-    List<guiObject> guiObjects = new List<guiObject>();
+    public List<guiObject> guiObjects = new List<guiObject>();
     public int[][][] guiScreen;
     public guiHandler(){
         //Empty case
@@ -27,6 +27,10 @@ public class guiHandler{
         }
     }
     public void renderGuiObjects(){
+        /*
+            This function should only need to be run at the beginning of the program and whenever
+            the object list is updated
+        */
         double textureToScreenSizeX = 0;
         double textureToScreenSizeY = 0;
         Color colorHolder;
@@ -57,13 +61,15 @@ public class guiHandler{
                     y < (int)guiObjects[index].topRight.Y; 
                     y++
                 ){
-                    //Checking if the currently existing value is on a higher layer than our 
-                    //guiObject, if it is then we continue to the next itteration 
+                    /*
+                        Checking if the currently existing value is on a higher layer than our 
+                        guiObject, if it is then we continue to the next itteration 
+                    */
                     if(guiScreen[x][y][3] > guiObjects[index].layer) continue;
                     //Getting the relevant pixel data from the texture
                     colorHolder = guiObjects[index].texture.GetPixel(
-                        (int)(x*textureToScreenSizeX),
-                        (int)(y*textureToScreenSizeY)
+                        (int)((x-(int)guiObjects[index].bottomLeft.X)*textureToScreenSizeX),
+                        (int)((y-(int)guiObjects[index].bottomLeft.Y)*textureToScreenSizeY)
                     );
                     //Setting the guiScreen data to our current pixel
                     guiScreen[x][y][0] = colorHolder.R;
@@ -80,7 +86,7 @@ public class guiHandler{
         //Getting the index value at the click location 
         int index = guiScreen[(int)clickLocation.X][(int)clickLocation.Y][4];
         //If the index is below 0 then return
-        if(index >= 0) return;
+        if(index < 0 || !guiObjects[index].clickable) return;
         //Run the functions that are attached to the guiObject
         guiObjects[index].clickAction();
     }
@@ -104,8 +110,10 @@ public class guiObject{
     public Boolean clicked;
     //What texture does the guiObject use
     public Bitmap texture;
-    //Defining a delegate type to hold any code that is executed when the 
-    //guiObject is clicked
+    /*
+        Defining a delegate type to hold any code that is executed when the 
+        guiObject is clicked
+    */
     public delegate void clickActionHolder();
     //Adding the default action to the clickaction holder 
     public clickActionHolder clickAction = defaultClickAction;

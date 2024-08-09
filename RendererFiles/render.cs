@@ -420,7 +420,7 @@ namespace PenroseEngine{
             lineData.triangleID = triangleID;
             return lineData;
         }   
-        public static Image renderToScreen(double[][][] screenInfo){
+        public static Image renderToScreen(double[][][] screenInfo, guiHandler guiHandler){
             Bitmap screenImage = new Bitmap(xSize, ySize);
             //Creating the tempColor holder that will be used to color the triangles
             Color tempColor;
@@ -458,13 +458,24 @@ namespace PenroseEngine{
                             savedColor = 0;
                         }
                         */
+                        //Checking if there is a guiObject on the screen at the pixel if there is display that instead
+                        if(guiHandler.guiScreen[screenX][screenY][4] != -1){
+                            tempColor = Color.FromArgb(
+                                255,
+                                guiHandler.guiScreen[screenX][screenY][0],
+                                guiHandler.guiScreen[screenX][screenY][1],
+                                guiHandler.guiScreen[screenX][screenY][2]
+                            );
+                        }else{
+                            tempColor = Color.FromArgb(
+                                255,
+                                savedColor,
+                                savedColor,
+                                savedColor
+                            );
+                        }
                         //Pulling the color from screenData
-                        tempColor = Color.FromArgb(
-                            255,
-                            savedColor,
-                            savedColor,
-                            savedColor
-                        );
+                        
                         screenImage.SetPixel(x,y,tempColor);
                         //screenImage.SetPixel(endLine,screenY,tempColor);
                     }else{
@@ -487,7 +498,16 @@ namespace PenroseEngine{
                         }else{
                             screenInfo[screenX][screenY][1] = -1;
                         }
-                        
+                        //Rendering the gui
+                        if(guiHandler.guiScreen[screenX][screenY][4] != -1){
+                            tempColor = Color.FromArgb(
+                                255,
+                                guiHandler.guiScreen[screenX][screenY][0],
+                                guiHandler.guiScreen[screenX][screenY][1],
+                                guiHandler.guiScreen[screenX][screenY][2]
+                            );
+                            screenImage.SetPixel(x,y,tempColor);
+                        }
                     }
                 }
             }
