@@ -516,7 +516,7 @@ namespace PenroseEngine{
         }
 	}
     
-    public class component{
+    public class Component{
         //Component Class for future ECS system
     }
     

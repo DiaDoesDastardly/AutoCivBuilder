@@ -13,8 +13,6 @@ public partial class MyForm : Form
     private double scale;
     private TrackBar trackBar1;
     private TrackBar trackBar2;
-    private TrackBar trackBar3;
-    private Button button1;
 
     private long lastMiliCheck;
     private double rowAssignmentTimer = 0;
@@ -26,6 +24,8 @@ public partial class MyForm : Form
     private guiHandler guiHandler;
 
     private Boolean nextTurnActive = true;
+
+    private Boolean mouseDown = false;
 
     public MyForm(double[,] rotationalMatrix, gameObject[] renderObjects,double scale)
     {
@@ -58,7 +58,7 @@ public partial class MyForm : Form
                 new (100,100), //Location of the top right corner of the object
                 0, //Layer of the object
                 false, //Is the object clickable
-                true, //Is the object visible
+                false, //Is the object hidden
                 new Bitmap(Image.FromFile("..\\..\\..\\guiTextures\\raincat.PNG")) //The texture of the gui object
             )
         );
@@ -69,26 +69,48 @@ public partial class MyForm : Form
                 new (399,399), //Location of the top right corner of the object
                 0, //Layer of the object
                 true, //Is the object clickable
-                true, //Is the object visible
+                false, //Is the object hidden
                 new Bitmap(Image.FromFile("..\\..\\..\\guiTextures\\NextTurnButton.png")) //The texture of the gui object
             )
         );
         //guiHandler.guiObjects[0].clickAction += cat;
         guiHandler.guiObjects[1].clickAction += nextTurnButton;
+        guiHandler.guiObjects[1].clickAction += catVanish;
         guiHandler.renderGuiObjects();
 
         InitializeComponent();
         InitializeTimer();
     }
-    private void nextTurnButton(){
+    //guiObject functions initialization
+    void nextTurnButton(){
         //Console.WriteLine("Cat has been clicked");
         nextTurnActive = true;
     }
-    private void mouseClickDetect(object sender, MouseEventArgs e){
+    void catVanish(){
+        if(guiHandler.guiObjects[0].hidden) guiHandler.guiObjects[0].hidden = false;
+        else if(!guiHandler.guiObjects[0].hidden) guiHandler.guiObjects[0].hidden = true;
+        Console.WriteLine(guiHandler.guiObjects[0].hidden);
+        guiHandler.renderGuiObjects();
+    }
+    //Making the mouse controls work
+    void MouseWheelScroll(object sender, MouseEventArgs e){
+        scale = Math.Pow(Math.Sqrt(scale) + e.Delta/100,2); 
+        if(scale < 10) scale = 10;
+    }
+    void mouseClickDetect(object sender, MouseEventArgs e){
         //MouseEventArgs weh = (MouseEventArgs)e;
         guiHandler.click(new(e.X,e.Y));
+        mouseDown = true;
     }
-    private void InitializeComponent()
+    void mouseUnclick(object sender, MouseEventArgs e){
+        //MouseEventArgs weh = (MouseEventArgs)e;
+        mouseDown = false;
+    }
+    void mouseDragDetect(object sender, MouseEventArgs e){
+        if(mouseDown)Console.WriteLine(e.X+" "+e.Y);
+        //Function for dragging the mouse across the screen
+    }
+    void InitializeComponent()
     {
         this.pictureBox1 = new System.Windows.Forms.PictureBox();
         // Create a new TrackBar control
@@ -116,32 +138,9 @@ public partial class MyForm : Form
             Width = 200,
             Location = new System.Drawing.Point(200, 400)
         };
-
-        trackBar3 = new TrackBar
-        {
-            // Set the properties of the TrackBar
-            Minimum = 1,
-            Maximum = 100,
-            Value = (int)scale, // Initial value
-            TickStyle = TickStyle.TopLeft,
-            TickFrequency = 10,
-            Width = 200,
-            Location = new System.Drawing.Point(0, 440)
-        };
-
-        button1 = new Button
-        {
-            Location = new System.Drawing.Point(200, 440),
-            Text = "Next turn",
-        };
         // Add the TrackBar to the form's Controls collection
         Controls.Add(trackBar1);
         Controls.Add(trackBar2);
-        Controls.Add(trackBar3);
-        Controls.Add(button1);
-
-        //Adding button control
-        button1.Click += button1_Click;
 
         // PictureBox
         this.pictureBox1.Location = new System.Drawing.Point(0, 0);
@@ -153,7 +152,11 @@ public partial class MyForm : Form
         // Form
         this.Controls.Add(this.pictureBox1);
         this.pictureBox1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.mouseClickDetect);
-        this.ClientSize = new System.Drawing.Size(400, 480);
+        this.pictureBox1.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.MouseWheelScroll);
+        this.pictureBox1.MouseUp += new System.Windows.Forms.MouseEventHandler(this.mouseUnclick);
+        this.pictureBox1.MouseMove += new System.Windows.Forms.MouseEventHandler(this.mouseDragDetect);
+        
+        this.ClientSize = new System.Drawing.Size(400, 440);
         this.Name = "Form1";
         this.Text = "Form1";
         ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
@@ -167,11 +170,6 @@ public partial class MyForm : Form
         timer.Tick += Timer_Tick;
         timer.Start();
     }
-    //Button clicking 
-    private void button1_Click(object sender, EventArgs e){
-        Console.WriteLine("Weh");
-        nextTurnActive = true;
-    } 
     // Timer tick event handler
     private void Timer_Tick(object sender, EventArgs e)
     {
@@ -215,9 +213,8 @@ public partial class MyForm : Form
             totalRenderTime = 0;
         }
 
-        scale = trackBar3.Value;
         rotationalMatrix = PenroseEngine.rendererPipeline.rotationMatrixGenerator(trackBar1.Value,trackBar2.Value);
-        PenroseEngine.rendererPipeline.screenResolution = 1;//(1-(double)trackBar3.Value/(double)trackBar3.Maximum)*.5+.5;
+        PenroseEngine.rendererPipeline.screenResolution = 1;
         foreach(gameObject item in renderObjects)
         PenroseEngine.rendererPipeline.rotateTriangles(rotationalMatrix,item, scale);
         renderToScreenTimer = DateTime.Now.Ticks;

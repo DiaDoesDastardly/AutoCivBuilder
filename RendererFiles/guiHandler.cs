@@ -11,7 +11,13 @@ public class guiHandler{
         int xScreenSize, 
         int yScreenSize
     ){
-        //Filling out the guiScreen with empty data 
+        setScreenToDefault(xScreenSize,yScreenSize);
+    }
+    public void setScreenToDefault(
+        int xScreenSize, 
+        int yScreenSize
+    ){
+        //Creating the guiScreen variable
         guiScreen = new int[xScreenSize][][];
         for(int x = 0; x < xScreenSize; x++){
             guiScreen[x] = new int[yScreenSize][];
@@ -26,15 +32,27 @@ public class guiHandler{
             }
         }
     }
+    //The renderGuiObjects function should only need to be run when updating the 
+    //guiObjects list and at the start of the program
     public void renderGuiObjects(){
         /*
             This function should only need to be run at the beginning of the program and whenever
             the object list is updated
+
+            A faster method for updating after the first render would be to only rerender
+            what has changed in the GUI. Though this current code works for now as we rarely 
+            update the gui (usually only once per turn)
         */
         double textureToScreenSizeX = 0;
         double textureToScreenSizeY = 0;
         Color colorHolder;
+
+        //Resetting guiScreen values back to defaults
+        setScreenToDefault(guiScreen.Length,guiScreen[0].Length);
+
         for(int index = 0; index < guiObjects.Count; index++){
+            //If the object is counted as hidden then don't render it
+            if(guiObjects[index].hidden) continue;
             //If the guiObject is not located on the screen then continue to the next guiObject
             if(
                 guiObjects[index].bottomLeft.X > guiScreen.Length ||
@@ -51,6 +69,7 @@ public class guiHandler{
                 (double)guiObjects[index].texture.Height/(
                     guiObjects[index].topRight.Y-guiObjects[index].bottomLeft.Y
                 );
+            //Applying the guiObject data to the guiScreen
             for(
                 int x = (int)guiObjects[index].bottomLeft.X; 
                 x < (int)guiObjects[index].topRight.X; 
