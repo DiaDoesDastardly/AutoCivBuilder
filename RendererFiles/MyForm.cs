@@ -1,3 +1,6 @@
+using System.Numerics;
+using System.Runtime.CompilerServices;
+
 public partial class MyForm : Form
 {
     //private rendererPipeline render;
@@ -26,6 +29,9 @@ public partial class MyForm : Form
     private Boolean nextTurnActive = true;
 
     private Boolean mouseDown = false;
+    private vector3 offset = new(0,0,0);
+    private Vector2 lastMousePosition = new (-1,-1);
+    private int theta = 0;
 
     public MyForm(double[,] rotationalMatrix, gameObject[] renderObjects,double scale)
     {
@@ -58,7 +64,7 @@ public partial class MyForm : Form
                 new (100,100), //Location of the top right corner of the object
                 0, //Layer of the object
                 false, //Is the object clickable
-                false, //Is the object hidden
+                true, //Is the object hidden
                 new Bitmap(Image.FromFile("..\\..\\..\\guiTextures\\raincat.PNG")) //The texture of the gui object
             )
         );
@@ -75,7 +81,7 @@ public partial class MyForm : Form
         );
         //guiHandler.guiObjects[0].clickAction += cat;
         guiHandler.guiObjects[1].clickAction += nextTurnButton;
-        guiHandler.guiObjects[1].clickAction += catVanish;
+        //guiHandler.guiObjects[1].clickAction += catVanish;
         guiHandler.renderGuiObjects();
 
         InitializeComponent();
@@ -99,6 +105,7 @@ public partial class MyForm : Form
     }
     void mouseClickDetect(object sender, MouseEventArgs e){
         //MouseEventArgs weh = (MouseEventArgs)e;
+        lastMousePosition = new (e.X,e.Y);
         guiHandler.click(new(e.X,e.Y));
         mouseDown = true;
     }
@@ -107,13 +114,31 @@ public partial class MyForm : Form
         mouseDown = false;
     }
     void mouseDragDetect(object sender, MouseEventArgs e){
-        if(mouseDown)Console.WriteLine(e.X+" "+e.Y);
-        //Function for dragging the mouse across the screen
+        if(mouseDown && e.Button == MouseButtons.Left){
+            //Finding the current theta angle of the camera
+            double angle = Math.PI*theta/180;
+            //Finding the the vector of change for the camera angle and mouse movements
+            vector3 vectorOfChange = new vector3(
+                Math.Cos(angle)*(lastMousePosition.X - e.X)/scale+Math.Sin(angle)*(lastMousePosition.Y - e.Y)/scale,
+                0,
+                Math.Cos(angle+Math.PI/2)*(lastMousePosition.X - e.X)/scale+Math.Sin(angle+Math.PI/2)*(lastMousePosition.Y - e.Y)/scale
+            );
+            //Adding the vector of change to the offset
+            offset.add(vectorOfChange);
+            //Setting the last mouse position to the current mouse position for the next check
+            lastMousePosition = new (e.X,e.Y);
+        }
+        if(mouseDown && e.Button == MouseButtons.Middle){
+            //Changing the camera theta by however much it has moved left or right
+            theta += (int)(lastMousePosition.X - e.X);
+            lastMousePosition = new (e.X,e.Y);
+        }
     }
     void InitializeComponent()
     {
         this.pictureBox1 = new System.Windows.Forms.PictureBox();
         // Create a new TrackBar control
+        /*
         trackBar1 = new TrackBar
         {
             // Set the properties of the TrackBar
@@ -125,8 +150,9 @@ public partial class MyForm : Form
             Width = 200,
             Location = new System.Drawing.Point(0, 400)
         };
-
+        */
         // Create a new TrackBar control
+        /*
         trackBar2 = new TrackBar
         {
             // Set the properties of the TrackBar
@@ -138,9 +164,10 @@ public partial class MyForm : Form
             Width = 200,
             Location = new System.Drawing.Point(200, 400)
         };
+        */
         // Add the TrackBar to the form's Controls collection
-        Controls.Add(trackBar1);
-        Controls.Add(trackBar2);
+        //Controls.Add(trackBar1);
+        //Controls.Add(trackBar2);
 
         // PictureBox
         this.pictureBox1.Location = new System.Drawing.Point(0, 0);
@@ -151,12 +178,13 @@ public partial class MyForm : Form
         
         // Form
         this.Controls.Add(this.pictureBox1);
+        //Adding mouse control to 
         this.pictureBox1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.mouseClickDetect);
         this.pictureBox1.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.MouseWheelScroll);
         this.pictureBox1.MouseUp += new System.Windows.Forms.MouseEventHandler(this.mouseUnclick);
         this.pictureBox1.MouseMove += new System.Windows.Forms.MouseEventHandler(this.mouseDragDetect);
         
-        this.ClientSize = new System.Drawing.Size(400, 440);
+        this.ClientSize = new System.Drawing.Size(400, 400);
         this.Name = "Form1";
         this.Text = "Form1";
         ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
@@ -213,10 +241,10 @@ public partial class MyForm : Form
             totalRenderTime = 0;
         }
 
-        rotationalMatrix = PenroseEngine.rendererPipeline.rotationMatrixGenerator(trackBar1.Value,trackBar2.Value);
+        rotationalMatrix = PenroseEngine.rendererPipeline.rotationMatrixGenerator(theta,-135);
         PenroseEngine.rendererPipeline.screenResolution = 1;
         foreach(gameObject item in renderObjects)
-        PenroseEngine.rendererPipeline.rotateTriangles(rotationalMatrix,item, scale);
+        PenroseEngine.rendererPipeline.rotateTriangles(rotationalMatrix,item, scale, offset);
         renderToScreenTimer = DateTime.Now.Ticks;
         Image frame = PenroseEngine.rendererPipeline.renderToScreen(PenroseEngine.rendererPipeline.screenInfo, guiHandler);
         totalRenderTime += (DateTime.Now.Ticks-renderToScreenTimer);

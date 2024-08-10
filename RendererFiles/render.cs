@@ -50,7 +50,7 @@ namespace PenroseEngine{
             };
             return outputPoint;
         }
-        public static double[][][] rotateTriangles(double[,] rotationalMatrix, gameObject renderableObject,double scale){
+        public static double[][][] rotateTriangles(double[,] rotationalMatrix, gameObject renderableObject,double scale, vector3 offset){
             vector3[] vertexHolder = new vector3[renderableObject.vertices.Length];
             for(int index = 0; index < vertexHolder.Length; index++){
                 vertexHolder[index] = new vector3();
@@ -77,7 +77,7 @@ namespace PenroseEngine{
                         (renderableObject.vertices[index].y*renderableObject.scale.y)+renderableObject.position.y,
                         (renderableObject.vertices[index].z*renderableObject.scale.z)+renderableObject.position.z
                     }, 
-                    new double[]{0,0,0}
+                    new double[]{offset.x,offset.y,offset.z}
                 );
                 vertexHolder[index].x = tempPoint[0]*scale;
                 vertexHolder[index].y = tempPoint[1]*scale;
