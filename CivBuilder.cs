@@ -13,11 +13,7 @@ public class CivBuilder{
     public Resources[] resourceType; 
     //Map of the city
     public Building[,] cityMap;
-    public upgradableBuilding farm;
-    public upgradableBuilding house;
-    public upgradableBuilding logger;
-    public upgradableBuilding mine;
-    public upgradableBuilding storehouse;
+    public upgradableBuilding farm, house, logger, mine, storehouse;
     //List of all citizens
     public List<Citizen> citizens = new List<Citizen>();
     public CivBuilder(){
@@ -214,6 +210,7 @@ public class CivBuilder{
             if(item.count > item.storage){
                 item.count = item.storage;
                 item.perTurn += item.storage-item.count;
+                //If the storage type is for population, then remove any additional population that doesn't have housing
                 if(item.name == "Population") {
                     Citizen.removeCitizens(Math.Abs(item.storage-item.count),this);
                 }

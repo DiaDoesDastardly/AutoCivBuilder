@@ -23,21 +23,33 @@ public class Resources{
         demand = 0;
         storage = 0;
     }
-    public Resources(String name, int count){
+    public Resources(
+        String name, 
+        int count
+    ){
         this.name = name;
         this.count = count;
         perTurn = 0;
         demand = 0;
         storage = 0;
     }
-    public Resources(String name, int count, int perTurn){
+    public Resources(
+        String name, 
+        int count, 
+        int perTurn
+    ){
         this.name = name;
         this.count = count;
         this.perTurn = perTurn;
         demand = 0;
         storage = 0;
     }
-    public Resources(String name, int count, int perTurn, int storage){
+    public Resources(
+        String name, 
+        int count, 
+        int perTurn, 
+        int storage
+    ){
         this.name = name;
         this.count = count;
         this.perTurn = perTurn;
@@ -45,7 +57,10 @@ public class Resources{
         this.storage = storage;
     }
 
-    public static Boolean find(String name, Resources[] resourceArray){
+    public static Boolean find(
+        String name, 
+        Resources[] resourceArray
+    ){
         for(int i = 0; i<resourceArray.Length; i++){
             if(name == resourceArray[i].name){
                 return true;
@@ -53,7 +68,10 @@ public class Resources{
         }
         return false;
     }
-    public static Resources findThenReturn(Resources resourceToFind, Resources[] resourceArray){
+    public static Resources findThenReturn(
+        Resources resourceToFind, 
+        Resources[] resourceArray
+    ){
         foreach(Resources item in resourceArray)
         if(item.name == resourceToFind.name) return item;
         return new Resources();
