@@ -22,10 +22,10 @@ public class  ResearchTree{
     }
     //Check if there is enough science to research next level, if so then research
     public void upgradeTech(Resources[] resources){
-        if(Resources.findThenReturn(firstNode.nextNodes[0].science,resources).count+firstNode.nextNodes[0].science.count > 0){
-            upgradeNames.Add(firstNode.nextNodes[0].modelName);
-            modelNames.Add(firstNode.nextNodes[0].modelName);
-            firstNode = firstNode.nextNodes[0];
+        if(Resources.findThenReturn(firstNode.nextNode.science,resources).count+firstNode.nextNode.science.count > 0){
+            upgradeNames.Add(firstNode.nextNode.modelName);
+            modelNames.Add(firstNode.nextNode.modelName);
+            firstNode = firstNode.nextNode;
         }
     }
 }
@@ -39,7 +39,7 @@ public class researchTreeItem{
     //Previous node on the tech tree
     researchTreeItem previousNode;
     //Next nodes on the tree held as a list for easy addition to the list
-    public List<researchTreeItem> nextNodes = new List<researchTreeItem>();
+    public researchTreeItem nextNode;
     //Empty case
     public researchTreeItem(){
         
@@ -70,12 +70,10 @@ public class researchTreeItem{
         Resources science,
         String modelName
     ){
-        nextNodes.Add(
-            new(
-                science,
-                modelName,
-                this
-            )
+        nextNode = new(
+            science,
+            modelName,
+            this
         );
     }
 }
