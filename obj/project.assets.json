@@ -8,19 +8,19 @@
     "net8.0-windows7.0": []
   },
   "packageFolders": {
-    "C:\\Users\\borgs\\.nuget\\packages\\": {}
+    "C:\\Users\\hdcharley\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\borgs\\Documents\\CivBuilderGame\\AutoCivBuilder\\AutoCivBuilder.csproj",
+      "projectUniqueName": "C:\\Users\\hdcharley\\Documents\\GitHub\\AutoCivBuilder\\AutoCivBuilder.csproj",
       "projectName": "AutoCivBuilder",
-      "projectPath": "C:\\Users\\borgs\\Documents\\CivBuilderGame\\AutoCivBuilder\\AutoCivBuilder.csproj",
-      "packagesPath": "C:\\Users\\borgs\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\borgs\\Documents\\CivBuilderGame\\AutoCivBuilder\\obj\\",
+      "projectPath": "C:\\Users\\hdcharley\\Documents\\GitHub\\AutoCivBuilder\\AutoCivBuilder.csproj",
+      "packagesPath": "C:\\Users\\hdcharley\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\hdcharley\\Documents\\GitHub\\AutoCivBuilder\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\borgs\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "C:\\Users\\hdcharley\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net8.0-windows"
@@ -67,7 +67,7 @@
             "privateAssets": "none"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.203/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.303/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

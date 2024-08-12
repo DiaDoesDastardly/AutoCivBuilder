@@ -13,14 +13,14 @@ public class CivBuilder{
     public Resources[] resourceType; 
     //Map of the city
     public Building[,] cityMap;
-    public upgradableBuilding farm, house, logger, mine, storehouse;
+    public upgradableBuilding farm, house, logger, mine, storehouse, laboratory;
     //List of all citizens
     public List<Citizen> citizens = new List<Citizen>();
     public CivBuilder(){
         //Initializing variables
         turnCount = 0;
         mapSizeX = 11;
-        mapSizeY = 8;
+        mapSizeY = 11;
         cityMap = new Building[mapSizeX,mapSizeY];
         //Setting every tile on the map to an empty building spot
         for(int initX = 0; initX < mapSizeX; initX++){
@@ -32,11 +32,12 @@ public class CivBuilder{
         //Adding used resources to the game
         resourceType = new Resources[]{
             new("Food",30),
-            new("Wood",30),
-            new("Stone",30),
+            new("Wood",40),
+            new("Stone",40),
             new("Coal",30),
             new("Population",0,0,20),
-            new("Workers")
+            new("Workers"),
+            new("Science")
         };
         
         //Adding the first citizens
@@ -54,26 +55,38 @@ public class CivBuilder{
             "Farm", //Building type name
             //Model Names
             [
-                "berryBushes.obj",
-                "berryBushes.obj",
-                "buildingTwo.obj",
-                "buildingTwo.obj"
+                "berryBushes.obj"
             ],
             //Upgrade names
             [
-                "Berry Bush",
+                "Berry Bush"                
+            ], 
+            //Researchable model names
+            [
+                "berryBushes.obj",
+                "buildingTwo.obj",
+                "buildingTwo.obj"
+            ], 
+            //Researchable upgrade names
+            [
                 "Basic Farm",
                 "Farm",
                 "Factory Farm"
-            ], 
-            0, // Building rank
+            ],
+            //Cost to research each level
+            [
+                new ("Science",-10),
+                new ("Science",-10),
+                new ("Science",-10)
+            ],
+            1, // Building rank
             0, // Pop housing
             4, // Employee Max
             //Building resource cost and per turn
             [
-                new Resources("Wood",-10,0),
-                new Resources("Stone",-10,0),
-                new Resources("Food",0,80)
+                new ("Wood",-10,0),
+                new ("Stone",-10,0),
+                new ("Food",0,80)
             ], 
             false, //Needs neighbors
             true //Build on outskirts 
@@ -82,27 +95,38 @@ public class CivBuilder{
             "House", //Building type name
             //Model names
             [
-                "huts.obj",
+                "huts.obj"
+            ], 
+            //Upgrade names
+            [
+                "Small hut"
+            ], 
+            //Researchable model names
+            [
                 "house.obj",
                 "house.obj",
                 "buildingOne.obj"
             ], 
-            //Upgrade names
+            //Researchable upgrade names
             [
-                "Small hut",
                 "Wooden House",
                 "Townhouse",
                 "Apartment Complex"
-            ], 
+            ],
+            //Cost to research each level
+            [
+                new ("Science",-10),
+                new ("Science",-10),
+                new ("Science",-10)
+            ],
             5, // Building rank
-            20, // Pop housing
+            0, // Pop housing
             0, // Employee Max
             //Building resource cost and per turn
             [
-                new Resources("Wood",-12,0),
-                new Resources("Stone",-12,0),
-                new Resources("Population",0,0,10),
-                new ("Workers",0,0,4)
+                new ("Wood",-12,0),
+                new ("Stone",-12,0),
+                new ("Population",0,0,10)
             ], 
             true, //Needs neighbors
             false //Build on outskirts 
@@ -115,18 +139,33 @@ public class CivBuilder{
             ], 
             //Upgrade names
             [
-                "Stick Gatherers",
+                "Stick Gatherers"                
+            ], 
+            //Researchable model names
+            [
+                "buildingFour.obj",
+                "buildingFour.obj",
+                "buildingFour.obj"
+            ], 
+            //Researchable upgrade names
+            [
                 "Lumberjack hut",
                 "Log Mill",
                 "Logging Company"
-            ], 
-            0, // Building rank
+            ],
+            //Cost to research each level
+            [
+                new ("Science",-10),
+                new ("Science",-10),
+                new ("Science",-10)
+            ],
+            1, // Building rank
             0, // Pop housing
             4, // Employee Max
             //Building resource cost and per turn
             [
-                new Resources("Wood",0,4),
-                new Resources("Stone",-10,0),
+                new ("Wood",0,4),
+                new ("Stone",-10,0),
                 new ("Workers",0,0,4)
             ], 
             false, //Needs neighbors
@@ -140,12 +179,27 @@ public class CivBuilder{
             ], 
             //Upgrade names
             [
-                "Stone Gatherers",
+                "Stone Gatherers"                
+            ], 
+            //Researchable model names
+            [
+                "buildingThree.obj",
+                "buildingThree.obj",
+                "buildingThree.obj"
+            ], 
+            //Researchable upgrade names
+            [
                 "Stone Mine",
                 "Stone Quarry",
                 "Mountain Digger"
-            ], 
-            0, // Building rank
+            ],
+            //Cost to research each level
+            [
+                new ("Science",-10),
+                new ("Science",-10),
+                new ("Science",-10)
+            ],
+            1, // Building rank
             0, // Pop housing
             4, // Employee Max
             //Building resource cost and per turn
@@ -180,6 +234,29 @@ public class CivBuilder{
             false, //Needs neighbors
             true //Build on outskirts 
         );
+        laboratory = new upgradableBuilding( 
+            "Laboratory", //Building type name
+            //Model names
+            [
+                "cube.obj"
+            ],
+            //Upgrade names
+            [
+                "Laboratory"
+            ], 
+            0, // Building rank
+            0, // Pop housing
+            4, // Employee Max
+            //Building resource cost and per turn
+            [
+                new ("Wood",-10,0),
+                new ("Stone",-10,0),
+                new ("Science",0,10,1000),
+                new ("Workers",0,0,4)
+            ], 
+            false, //Needs neighbors
+            true //Build on outskirts 
+        );
                 
         //Adding starter structures to of the map
         addBuilding(house.createPrefab(0), mapSizeX/2, mapSizeY/2, true);
@@ -187,6 +264,7 @@ public class CivBuilder{
         addBuilding(logger.createPrefab(0), 0, 1, true);
         addBuilding(mine.createPrefab(0), 0, 2, true);
         addBuilding(storehouse.createPrefab(0), 0, 3, false);
+        addBuilding(laboratory.createPrefab(0), 0, 4, false);
     }
     public Boolean initTurn(){
         //Resetting trackers for resource production and housing
@@ -213,12 +291,14 @@ public class CivBuilder{
                 //If the storage type is for population, then remove any additional population that doesn't have housing
                 if(item.name == "Population") {
                     Citizen.removeCitizens(Math.Abs(item.storage-item.count),this);
+                    resourceType[0].demand = 2*item.count;
                 }
             }
             if(item.name == "Population" && item.count<=0) {
                 if(item.count<=0) return false;//If every one is gone then return false
             }
         }
+        //If there is enough science to research then do some research
         
         //If the people demand food then make farms
         if(resourceType[0].demand>0) farm.build(this);

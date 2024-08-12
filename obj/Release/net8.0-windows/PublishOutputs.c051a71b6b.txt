@@ -1,0 +1,5 @@
+C:\Users\hdcharley\Documents\GitHub\AutoCivBuilder\bin\Release\net8.0-windows\publish\AutoCivBuilder.exe
+C:\Users\hdcharley\Documents\GitHub\AutoCivBuilder\bin\Release\net8.0-windows\publish\AutoCivBuilder.dll
+C:\Users\hdcharley\Documents\GitHub\AutoCivBuilder\bin\Release\net8.0-windows\publish\AutoCivBuilder.deps.json
+C:\Users\hdcharley\Documents\GitHub\AutoCivBuilder\bin\Release\net8.0-windows\publish\AutoCivBuilder.runtimeconfig.json
+C:\Users\hdcharley\Documents\GitHub\AutoCivBuilder\bin\Release\net8.0-windows\publish\AutoCivBuilder.pdb

@@ -159,14 +159,17 @@ public partial class MyForm : Form
     {
         //Civ iterate
         if(nextTurnActive){
-            civ.initTurn();
+            if(!civ.initTurn()){                
+                guiHandler.guiObjects[0].hidden = true;
+                guiHandler.renderGuiObjects();
+            }
+            
             civ.currentGameStats();
             for(int xPos = 0; xPos < civ.mapSizeX; xPos++)
             for(int yPos = 0; yPos < civ.mapSizeY; yPos++)
             renderObjects[xPos * civ.mapSizeY + yPos] = new gameObject(objectFolder + civ.cityMap[xPos, yPos].model)
             {
                 position = new vector3((xPos - civ.mapSizeX / 2) * 2, 0, (yPos - civ.mapSizeY / 2) * 2)
-                //scale = new vector3(.7, civ.cityMap[xPos,yPos].level+1, .7)        
             };
             nextTurnActive = false;
         }
@@ -175,6 +178,7 @@ public partial class MyForm : Form
         PenroseEngine.rendererPipeline.rowAssignments = 0;
         PenroseEngine.rendererPipeline.totalTimeTaken = 0;
         renderToScreenTimer = 0;
+        /*
         if(DateTime.Now.Ticks/TimeSpan.TicksPerMillisecond - lastMiliCheck > 1000){
             Console.WriteLine(
                 "Average time for row assignments in ticks "+(rowAssignmentTimer/TimeSpan.TicksPerMillisecond/PenroseEngine.rendererPipeline.frameCounter)+"\n "+
@@ -192,7 +196,7 @@ public partial class MyForm : Form
             highestRowAssignment = 0;
             totalRenderTime = 0;
         }
-
+        */
         rotationalMatrix = PenroseEngine.rendererPipeline.rotationMatrixGenerator(theta,-150);
         PenroseEngine.rendererPipeline.screenResolution = 1;
         foreach(gameObject item in renderObjects)

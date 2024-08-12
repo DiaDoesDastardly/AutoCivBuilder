@@ -14,6 +14,10 @@ public class Building{
     public Boolean needsNeighbors;
     //Does the building perfer to be on the outskirts of the city
     public Boolean buildOnOutskirts;
+    //Does the building need minable resources
+    public Boolean needsMinableResources;
+    //Does the building need growable soil
+    public Boolean needsGrowableSoil;
     //What is the building's rank (more important the higher the rank)
     public int buildingRank;
     //What model does the building use
@@ -31,7 +35,10 @@ public class Building{
     public Boolean emptyBuilding;
     //Is the building an empty buildable tile
     public Boolean emptyTile;
-
+    //Does the tile have minable resources
+    public Boolean minableResources;
+    //Does the tile have growable soil
+    public Boolean growableSoil;
 
     public Building(){
         name = "empty";
@@ -82,12 +89,11 @@ public class Building{
 }
 
 public class upgradableBuilding : Building{
-    public String[] upgradeNames;
-    public String[] modelNames;
+    public ResearchTree techTree;
     public upgradableBuilding(){
         //Empty Case
     }
-
+    /*
     public upgradableBuilding(
             String[] upgradeNames,
             Building baseBuilding
@@ -102,7 +108,7 @@ public class upgradableBuilding : Building{
         needsNeighbors = baseBuilding.needsNeighbors;
         buildOnOutskirts = baseBuilding.buildOnOutskirts;
     }
-
+    */
     public upgradableBuilding(
             String buildingTypeName,
             String[] modelNames,
@@ -114,8 +120,14 @@ public class upgradableBuilding : Building{
             Boolean needsNeighbors,
             Boolean buildOnOutskirts
         ){
+        this.techTree = new(
+            upgradeNames,
+            modelNames
+        );
+        /*
         this.upgradeNames = upgradeNames;
         this.modelNames = modelNames;
+        */
         name = buildingTypeName;
         this.buildingRank = buildingRank;
         this.popHousing = popHousing;
@@ -123,6 +135,39 @@ public class upgradableBuilding : Building{
         this.resources = resources;
         this.needsNeighbors = needsNeighbors;
         this.buildOnOutskirts = buildOnOutskirts;
+    }
+    public upgradableBuilding(
+            String buildingTypeName,
+            String[] modelNames,
+            String[] upgradeNames,
+            String[] researchModelNames,
+            String[] researchUpgradeNames,
+            Resources[] researchCosts,
+            int buildingRank,
+            int popHousing,
+            int employeeCount,
+            Resources[] resources,
+            Boolean needsNeighbors,
+            Boolean buildOnOutskirts
+        ){
+        this.techTree = new(
+            upgradeNames,
+            researchUpgradeNames,
+            modelNames,
+            researchModelNames,
+            researchCosts
+        );
+        //this.upgradeNames = upgradeNames;
+        //this.modelNames = modelNames;
+        name = buildingTypeName;
+        this.buildingRank = buildingRank;
+        this.popHousing = popHousing;
+        this.employeeCount = employeeCount;
+        this.resources = resources;
+        this.needsNeighbors = needsNeighbors;
+        this.buildOnOutskirts = buildOnOutskirts;
+
+        //Creating tech tree for the building
     }
 
     public Building createPrefab(int buildLevel){
@@ -133,11 +178,11 @@ public class upgradableBuilding : Building{
         String modelName = "cube.obj";
         //If the input build level is higher than the amount of upgrades a building has
         //we then output an empty building
-        if(buildLevel>upgradeNames.Length-1) return new Building();
+        if(buildLevel>techTree.upgradeNames.Count-1) return new Building();
         //If the input build level is lower than the number of model names then we output the
         //name of the model at that build level
-        if(buildLevel<modelNames.Length) modelName = modelNames[buildLevel];
-        else modelName = modelNames[0];
+        if(buildLevel<techTree.modelNames.Count) modelName = techTree.modelNames[buildLevel];
+        else modelName = techTree.modelNames[0];
         //Creating new resource array for the new building
         Resources[] upgradedResource = new Resources[resources.Length];
 
@@ -152,7 +197,7 @@ public class upgradableBuilding : Building{
         );
 
         return new Building(
-            upgradeNames[buildLevel],
+            techTree.upgradeNames[buildLevel],
             modelName,
             buildLevel,
             buildingRank * (buildLevel+1),
@@ -163,9 +208,31 @@ public class upgradableBuilding : Building{
             buildOnOutskirts
         );
     }
-
+    public Boolean researchBuilding(CivBuilder city){
+        //The index of the science resource in the city
+        int scienceIndex = 0;
+        //Making sure that the next node isn't blank
+        if(techTree.firstNode.nextNode.upgradeName != ""){
+            //Getting the index for science in the city resources
+            scienceIndex = techTree.firstNode.nextNode.science.getIndex(city.resourceType);
+            //Check if the city can afford to do the research
+            if(city.resourceType[scienceIndex].count + techTree.firstNode.nextNode.science.count >=0){
+                //Subtract the cost of the research from the city resources
+                city.resourceType[scienceIndex].addCount(techTree.firstNode.nextNode.science.count);
+                //Adding the researched model and name to the list
+                techTree.modelNames.Add(techTree.firstNode.nextNode.modelName);
+                techTree.upgradeNames.Add(techTree.firstNode.nextNode.upgradeName);
+                //Setting the current node to the researched node
+                techTree.firstNode = techTree.firstNode.nextNode;
+            }else{
+                return false;
+            }
+        }
+        return false;
+    }
     public Boolean autoUpgrade(CivBuilder city){
-        for(int level = 1; level< upgradeNames.Length; level++)
+        researchBuilding(city);
+        for(int level = 1; level < techTree.upgradeNames.Count; level++)
         if(city.replaceBuildings(createPrefab(level-1), createPrefab(level), 1)) return true;
         return false;
     }
