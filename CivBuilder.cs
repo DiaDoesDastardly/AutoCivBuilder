@@ -86,7 +86,8 @@ public class CivBuilder{
             [
                 new ("Wood",-10,0),
                 new ("Stone",-10,0),
-                new ("Food",0,80)
+                new ("Food",0,80),
+                new ("Workers",0,0,4)
             ], 
             false, //Needs neighbors
             true //Build on outskirts 
@@ -270,6 +271,10 @@ public class CivBuilder{
         //Resetting trackers for resource production and housing
         workerCount = 0;
         foreach(Resources item in resourceType){
+            //Setting our Worker count to 0
+            if(item.name == "Workers"){
+                item.count = 0;
+            }
             item.perTurn = 0;
             item.demand = 0;
         }
@@ -348,6 +353,7 @@ public class CivBuilder{
         }
         Console.Write("\n");
     }
+    /*
     public void buildingAction(){
         double productionMod;
         for(int initX = 0; initX < mapSizeX; initX++){
@@ -376,6 +382,45 @@ public class CivBuilder{
                 }
             }
         }
+    }
+    */
+    public void buildingAction(){
+        double productionMod;
+        int workerIndex;
+        int cityWorkerIndex = Resources.getIndex(resourceType, new("Workers"));
+        int populationIndex = Resources.getIndex(resourceType, new("Population"));
+        for(int initX = 0; initX < mapSizeX; initX++){
+            for(int initY = 0; initY < mapSizeY; initY++){
+                if(!cityMap[initX,initY].emptyTile){
+                    if(resourceType[cityWorkerIndex].count < resourceType[populationIndex].count){
+                        workerIndex = Resources.getIndex(cityMap[initX,initY].resources, new("Workers"));
+                        //if(workerIndex == -1) continue;
+
+                        cityMap[initX,initY].resources[workerIndex].count = cityMap[initX,initY].resources[workerIndex].storage;
+                        /*
+                        if(resourceType[cityWorkerIndex].count > resourceType[populationIndex].count){
+                            cityMap[initX,initY].resources[workerIndex].count = resourceType[cityWorkerIndex].count-resourceType[populationIndex].count;
+                        }else{
+                            cityMap[initX,initY].resources[workerIndex].count = cityMap[initX,initY].resources[workerIndex].storage;
+                        }
+                        */
+                        resourceType[cityWorkerIndex].count += cityMap[initX,initY].resources[workerIndex].count;
+
+                        if(cityMap[initX,initY].resources[workerIndex].storage == 0){
+                            productionMod = 1;
+                        }else{
+                            productionMod = cityMap[initX,initY].resources[workerIndex].count/cityMap[initX,initY].resources[workerIndex].storage;
+                        }
+                        foreach(Resources item in resourceType){
+                            item.findThenAdd(cityMap[initX,initY].resources, productionMod, false);
+                        }
+                    }                 
+                }
+            }
+        }
+        Console.WriteLine("Works: "+resourceType[cityWorkerIndex].count);
+        Console.WriteLine("Worksplace: "+resourceType[cityWorkerIndex].storage);
+        Console.WriteLine("Peeps: "+resourceType[populationIndex].count);
     }
     public Boolean buildBuildings(Building targetBuilding, int buildingCount){
         List<int[]> targetBuildingSites = new List<int[]>();
