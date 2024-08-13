@@ -14,6 +14,6 @@ build_property.PlatformNeutralAssembly =
 build_property.EnforceExtendedAnalyzerRules = 
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = AutoCivBuilder
-build_property.ProjectDir = c:\Users\hdcharley\Documents\GitHub\AutoCivBuilder\
+build_property.ProjectDir = c:\Users\borgs\Documents\CivBuilderGame\AutoCivBuilder\
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 

@@ -7,8 +7,6 @@ public class CivBuilder{
     //Size of map
     public int mapSizeX;
     public int mapSizeY;
-    //How many people work in the city
-    public int workerCount; 
     //Types of resources
     public Resources[] resourceType; 
     //Map of the city
@@ -31,9 +29,9 @@ public class CivBuilder{
 
         //Adding used resources to the game
         resourceType = new Resources[]{
-            new("Food",30),
-            new("Wood",40),
-            new("Stone",40),
+            new("Food",100),
+            new("Wood",100),
+            new("Stone",100),
             new("Coal",30),
             new("Population",0,0,20),
             new("Workers"),
@@ -79,14 +77,14 @@ public class CivBuilder{
                 new ("Science",-10),
                 new ("Science",-10)
             ],
-            1, // Building rank
+            0, // Building rank
             0, // Pop housing
             4, // Employee Max
             //Building resource cost and per turn
             [
                 new ("Wood",-10,0),
                 new ("Stone",-10,0),
-                new ("Food",0,80),
+                new ("Food",0,20),
                 new ("Workers",0,0,4)
             ], 
             false, //Needs neighbors
@@ -160,7 +158,7 @@ public class CivBuilder{
                 new ("Science",-10),
                 new ("Science",-10)
             ],
-            1, // Building rank
+            0, // Building rank
             0, // Pop housing
             4, // Employee Max
             //Building resource cost and per turn
@@ -200,7 +198,7 @@ public class CivBuilder{
                 new ("Science",-10),
                 new ("Science",-10)
             ],
-            1, // Building rank
+            0, // Building rank
             0, // Pop housing
             4, // Employee Max
             //Building resource cost and per turn
@@ -260,20 +258,20 @@ public class CivBuilder{
         );
                 
         //Adding starter structures to of the map
-        addBuilding(house.createPrefab(0), mapSizeX/2, mapSizeY/2, true);
-        addBuilding(farm.createPrefab(0), 0, 0, true);
-        addBuilding(logger.createPrefab(0), 0, 1, true);
-        addBuilding(mine.createPrefab(0), 0, 2, true);
+        addBuilding(house.createPrefab(0), mapSizeX/2, mapSizeY/2, false);
+        addBuilding(farm.createPrefab(0), 0, 0, false);
+        addBuilding(logger.createPrefab(0), 0, 1, false);
+        addBuilding(mine.createPrefab(0), 0, 2, false);
         addBuilding(storehouse.createPrefab(0), 0, 3, false);
         addBuilding(laboratory.createPrefab(0), 0, 4, false);
     }
     public Boolean initTurn(){
         //Resetting trackers for resource production and housing
-        workerCount = 0;
         foreach(Resources item in resourceType){
             //Setting our Worker count to 0
             if(item.name == "Workers"){
                 item.count = 0;
+                item.storage = 0;
             }
             item.perTurn = 0;
             item.demand = 0;
@@ -320,7 +318,6 @@ public class CivBuilder{
     }
     public void currentGameStats(){
         Console.WriteLine("Turn: "+turnCount);
-        //Console.WriteLine("Population: "+population);
         foreach(Resources item in resourceType){
             Console.WriteLine(
                 item.name + ": " + item.count + 
@@ -329,7 +326,6 @@ public class CivBuilder{
                 " || storage: " + item.storage
             );
         }
-        Console.WriteLine("Number of workers: "+workerCount);
         Console.Write("\n");
     }
     public void printMap(){
@@ -394,17 +390,12 @@ public class CivBuilder{
                 if(!cityMap[initX,initY].emptyTile){
                     if(resourceType[cityWorkerIndex].count < resourceType[populationIndex].count){
                         workerIndex = Resources.getIndex(cityMap[initX,initY].resources, new("Workers"));
-                        //if(workerIndex == -1) continue;
+                        if(workerIndex == -1) continue;
 
                         cityMap[initX,initY].resources[workerIndex].count = cityMap[initX,initY].resources[workerIndex].storage;
-                        /*
-                        if(resourceType[cityWorkerIndex].count > resourceType[populationIndex].count){
-                            cityMap[initX,initY].resources[workerIndex].count = resourceType[cityWorkerIndex].count-resourceType[populationIndex].count;
-                        }else{
-                            cityMap[initX,initY].resources[workerIndex].count = cityMap[initX,initY].resources[workerIndex].storage;
-                        }
-                        */
+
                         resourceType[cityWorkerIndex].count += cityMap[initX,initY].resources[workerIndex].count;
+                        resourceType[cityWorkerIndex].storage += cityMap[initX,initY].resources[workerIndex].storage;
 
                         if(cityMap[initX,initY].resources[workerIndex].storage == 0){
                             productionMod = 1;
@@ -418,9 +409,11 @@ public class CivBuilder{
                 }
             }
         }
+        /*
         Console.WriteLine("Works: "+resourceType[cityWorkerIndex].count);
         Console.WriteLine("Worksplace: "+resourceType[cityWorkerIndex].storage);
         Console.WriteLine("Peeps: "+resourceType[populationIndex].count);
+        */
     }
     public Boolean buildBuildings(Building targetBuilding, int buildingCount){
         List<int[]> targetBuildingSites = new List<int[]>();

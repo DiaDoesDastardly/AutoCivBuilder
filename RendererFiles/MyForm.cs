@@ -69,6 +69,11 @@ public partial class MyForm : Form
         guiHandler.guiObjects[0].clickAction += nextTurnButton;
         guiHandler.renderGuiObjects();
 
+        for(int i = 0; i < 100; i++) {
+            civ.initTurn();
+            civ.currentGameStats();
+        }
+
         InitializeComponent();
         InitializeTimer();
     }
