@@ -17,8 +17,8 @@ public class CivBuilder{
     public CivBuilder(){
         //Initializing variables
         turnCount = 0;
-        mapSizeX = 11;
-        mapSizeY = 11;
+        mapSizeX = 15;
+        mapSizeY = 15;
         cityMap = new Building[mapSizeX,mapSizeY];
         //Setting every tile on the map to an empty building spot
         for(int initX = 0; initX < mapSizeX; initX++){
@@ -349,37 +349,6 @@ public class CivBuilder{
         }
         Console.Write("\n");
     }
-    /*
-    public void buildingAction(){
-        double productionMod;
-        for(int initX = 0; initX < mapSizeX; initX++){
-            for(int initY = 0; initY < mapSizeY; initY++){
-                if(!cityMap[initX, initY].emptyTile){
-                    if(cityMap[initX, initY].workerCount < cityMap[initX, initY].employeeCount){
-                        for(int i = 0; i < citizens.Count; i++){
-                            if(!citizens[i].employed){
-                                citizens[i].employed = true;
-                                citizens[i].placeOfEmployment = new int[]{initX,initY};
-                                cityMap[initX, initY].workerCount++;
-                            }
-                            if(cityMap[initX, initY].workerCount == cityMap[initX, initY].employeeCount) break;
-                        }
-                    }
-                    if(cityMap[initX, initY].employeeCount > 0){
-                        if(!Resources.checkStock(resourceType,cityMap[initX, initY].resources, true)) productionMod = 0;
-                        else productionMod = (double)cityMap[initX, initY].workerCount/(double)cityMap[initX, initY].employeeCount;
-                        foreach(Resources item in resourceType) item.findThenAdd(cityMap[initX, initY].resources,productionMod,false);
-                        workerCount += cityMap[initX, initY].workerCount;
-                    }
-                    if(cityMap[initX, initY].popHousing > 0){
-                        if(!Resources.checkStock(resourceType,cityMap[initX, initY].resources, true)) continue;
-                        //housingCount += cityMap[initX, initY].popHousing;
-                    }
-                }
-            }
-        }
-    }
-    */
     public void buildingAction(){
         double productionMod;
         int workerIndex;
@@ -404,6 +373,8 @@ public class CivBuilder{
                         }
                         foreach(Resources item in resourceType){
                             item.findThenAdd(cityMap[initX,initY].resources, productionMod, false);
+                            if(Resources.getIndex(cityMap[initX,initY].resources,item) != -1)
+                            item.demand -= (int)(cityMap[initX,initY].resources[Resources.getIndex(cityMap[initX,initY].resources,item)].count*productionMod);
                         }
                     }                 
                 }

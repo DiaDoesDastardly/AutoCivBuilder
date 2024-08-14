@@ -68,12 +68,12 @@ public partial class MyForm : Form
         );
         guiHandler.guiObjects[0].clickAction += nextTurnButton;
         guiHandler.renderGuiObjects();
-
+        /*
         for(int i = 0; i < 100; i++) {
             civ.initTurn();
             civ.currentGameStats();
         }
-
+        */
         InitializeComponent();
         InitializeTimer();
     }
@@ -183,6 +183,10 @@ public partial class MyForm : Form
         PenroseEngine.rendererPipeline.rowAssignments = 0;
         PenroseEngine.rendererPipeline.totalTimeTaken = 0;
         renderToScreenTimer = 0;
+        if(DateTime.Now.Ticks/TimeSpan.TicksPerMillisecond - lastMiliCheck > 1000){
+            PenroseEngine.rendererPipeline.frameCounter = 1;
+            lastMiliCheck = DateTime.Now.Ticks/TimeSpan.TicksPerMillisecond;
+        }
         /*
         if(DateTime.Now.Ticks/TimeSpan.TicksPerMillisecond - lastMiliCheck > 1000){
             Console.WriteLine(
