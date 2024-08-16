@@ -43,7 +43,7 @@ public class Citizen{
         foreach(Resources item in city.resourceType){
             //Increasing resource demand to be parallel with consumption 
             if(Resources.getIndex(baseResources, item) != -1){
-                item.demand += population * baseResources[Resources.getIndex(baseResources, item)].count;
+                item.demand -= population * baseResources[Resources.getIndex(baseResources, item)].perTurn;
             }
             //city.resourceType[Resources.getIndex(city.resourceType, item)].demand += population;
             if(item.findThenAdd(baseResources, population, false)){
@@ -61,7 +61,7 @@ public class Citizen{
             city.citizens.Add(new("Newbie",city.turnCount));
             
             if(i+city.resourceType[populationIndex].count >= city.resourceType[populationIndex].storage){
-                city.resourceType[populationIndex].demand = city.resourceType[populationIndex].count-i;
+                city.resourceType[populationIndex].demand = 10;
                 break;
             }
         }

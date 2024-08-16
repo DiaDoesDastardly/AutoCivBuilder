@@ -12,13 +12,16 @@ public class CivBuilder{
     //Map of the city
     public Building[,] cityMap;
     public upgradableBuilding farm, house, logger, mine, storehouse, laboratory;
+    public upgradableBuilding[] buildingList; 
     //List of all citizens
     public List<Citizen> citizens = new List<Citizen>();
+    //The mayor of the city
+    Mayor mayor;
     public CivBuilder(){
         //Initializing variables
         turnCount = 0;
-        mapSizeX = 15;
-        mapSizeY = 15;
+        mapSizeX = 7;
+        mapSizeY = 7;
         cityMap = new Building[mapSizeX,mapSizeY];
         //Setting every tile on the map to an empty building spot
         for(int initX = 0; initX < mapSizeX; initX++){
@@ -256,14 +259,24 @@ public class CivBuilder{
             false, //Needs neighbors
             true //Build on outskirts 
         );
-                
+        buildingList = new upgradableBuilding[]{
+            farm,
+            house,
+            logger,
+            mine,
+            storehouse,
+            laboratory
+        };
         //Adding starter structures to of the map
-        addBuilding(house.createPrefab(0), mapSizeX/2, mapSizeY/2, false);
-        addBuilding(farm.createPrefab(0), 0, 0, false);
-        addBuilding(logger.createPrefab(0), 0, 1, false);
-        addBuilding(mine.createPrefab(0), 0, 2, false);
-        addBuilding(storehouse.createPrefab(0), 0, 3, false);
-        addBuilding(laboratory.createPrefab(0), 0, 4, false);
+        addBuilding(buildingList[1].createPrefab(0), mapSizeX/2, mapSizeY/2, false);
+        addBuilding(buildingList[0].createPrefab(0), 0, 0, false);
+        addBuilding(buildingList[2].createPrefab(0), 0, 1, false);
+        addBuilding(buildingList[3].createPrefab(0), 0, 2, false);
+        addBuilding(buildingList[4].createPrefab(0), 0, 3, false);
+        addBuilding(buildingList[5].createPrefab(0), 0, 4, false);
+
+        //Making the mayor
+        mayor = new Mayor("Jane Smith", resourceType.Length);
     }
     public Boolean initTurn(){
         //Resetting trackers for resource production and housing
@@ -294,25 +307,28 @@ public class CivBuilder{
                 //If the storage type is for population, then remove any additional population that doesn't have housing
                 if(item.name == "Population") {
                     Citizen.removeCitizens(Math.Abs(item.storage-item.count),this);
-                    resourceType[0].demand = 2*item.count;
+                    //resourceType[0].demand = 2*item.count;
                 }
             }
             if(item.name == "Population" && item.count<=0) {
                 if(item.count<=0) return false;//If every one is gone then return false
             }
         }
+        //Choosing building and building it
+        mayor.choosingBuilding(this);
+        /*
         //If there is enough science to research then do some research
         
         //If the people demand food then make farms
-        if(resourceType[0].demand>0) farm.build(this);
+        if(resourceType[0].demand>0) buildingList[0].build(this);
         
         //Make houses if we don't have enough room
-        if(resourceType[4].demand>0) house.build(this);
+        if(resourceType[4].demand>0) buildingList[1].build(this);
 
         //Creating mines and lumberyards to keep up with expansion demand
-        if(resourceType[2].perTurn<=turnCount/2)mine.build(this);
-        if(resourceType[1].perTurn<=turnCount/2)logger.build(this);
-
+        if(resourceType[2].perTurn<=turnCount/2)buildingList[3].build(this);
+        if(resourceType[1].perTurn<=turnCount/2)buildingList[2].build(this);
+        */
         //If all processes work then return true
         return true;
     }
@@ -373,8 +389,11 @@ public class CivBuilder{
                         }
                         foreach(Resources item in resourceType){
                             item.findThenAdd(cityMap[initX,initY].resources, productionMod, false);
-                            if(Resources.getIndex(cityMap[initX,initY].resources,item) != -1)
-                            item.demand -= (int)(cityMap[initX,initY].resources[Resources.getIndex(cityMap[initX,initY].resources,item)].count*productionMod);
+                            if(Resources.getIndex(cityMap[initX,initY].resources,item) != -1){
+                                item.demand -= (int)(cityMap[initX,initY].resources[Resources.getIndex(cityMap[initX,initY].resources,item)].perTurn*productionMod);
+                                
+                            }
+                            
                         }
                     }                 
                 }
