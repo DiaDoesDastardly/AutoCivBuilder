@@ -6,7 +6,7 @@ public class TileCondition{
     //Makes all resource production 0 on tile
     Boolean zeroProduction;
     //Can buildings be built on the tile with this effect (doesn't remove already existing builds)
-    Boolean buildableCondition;
+    Boolean buildableArea;
     //Has the tile already completed it's action for the turn
     Boolean actionRest;
     //How many tiles can the tile spread
@@ -23,6 +23,21 @@ public class TileCondition{
     Resources[] resourceProductionScalars;
     public TileCondition(){
         //Empty Case
+    }
+    public TileCondition(
+        String conditionName,
+        Boolean tileSpread,
+        Boolean zeroProduction,
+        Boolean buildableArea,
+        Boolean actionRest,
+        int spreadCount,
+        double spreadChance,
+        int expirationTime,
+        int buildingDamage,
+        int citizenDamage,
+        Resources[] resourceProductionScalars
+    ){
+        //Case with all of the individual variables
     }
     public Boolean spreadToTiles(CivBuilder city, int xPosition, int yPosition){
         int tileSpreadLeft = spreadCount;
@@ -43,9 +58,10 @@ public class TileCondition{
 
                     //Subtract the tile spread count by 1
                     tileSpreadLeft -= 1;
+                    //Make sure that the condition doesn't already exist on tile
 
                     //Add the condition to the selected tile
-
+                    city.cityMap[xPosition,yPosition].tileConditions.Add(this);
                 }
             }
             return true;
