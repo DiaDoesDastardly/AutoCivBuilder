@@ -10,6 +10,8 @@ public class Building{
     public int employeeCount;
     //What kind and how many resources does it cost to produce and how many per turn
     public Resources[] resources;
+    //List of conditions on the building (it is a list for ease of addition and removal of conditions)
+    public List<TileCondition> tileConditions;
     //Must the building be next to other buildings?
     public Boolean needsNeighbors;
     //Does the building perfer to be on the outskirts of the city
@@ -27,33 +29,23 @@ public class Building{
 
     //------------------------
 
-    //How many people currently live in the building
-    public int populationCount;
-    //How many people currently work in the building
-    public int workerCount;
-    //Is the building abandoned?
-    public Boolean emptyBuilding;
+    //Current health of the building (when at 0 the building returns to an empty tile)
+    public int buildingHealth;
     //Is the building an empty buildable tile
     public Boolean emptyTile;
-    //Does the tile have minable resources
-    public Boolean minableResources;
-    //Does the tile have growable soil
-    public Boolean growableSoil;
 
     public Building(){
         name = "empty";
         model = "trees.obj";
         emptyTile = true;
         buildingRank = 0;
-        resources = new Resources[0];
+        resources = [];
     }
     public Building(
             String name, 
             String model,
             int level,
             int buildingRank, 
-            int popHousing, 
-            int employeeCount, 
             Resources[] resources,
             Boolean needsNeighbors,
             Boolean buildOnOutskirts
@@ -62,10 +54,7 @@ public class Building{
         this.model = model;
         this.level = level;
         this.buildingRank = buildingRank;
-        this.popHousing = popHousing;
-        this.employeeCount = employeeCount;
         this.resources = resources;
-        emptyBuilding = false;
         this.needsNeighbors = needsNeighbors;
         emptyTile = false;
         this.buildOnOutskirts = buildOnOutskirts;
@@ -76,8 +65,6 @@ public class Building{
             model,
             level,
             buildingRank,
-            popHousing,
-            employeeCount,
             resources,
             needsNeighbors,
             buildOnOutskirts
@@ -114,8 +101,6 @@ public class upgradableBuilding : Building{
             String[] modelNames,
             String[] upgradeNames,
             int buildingRank,
-            int popHousing,
-            int employeeCount,
             Resources[] resources,
             Boolean needsNeighbors,
             Boolean buildOnOutskirts
@@ -144,8 +129,6 @@ public class upgradableBuilding : Building{
             String[] researchUpgradeNames,
             Resources[] researchCosts,
             int buildingRank,
-            int popHousing,
-            int employeeCount,
             Resources[] resources,
             Boolean needsNeighbors,
             Boolean buildOnOutskirts
@@ -161,8 +144,6 @@ public class upgradableBuilding : Building{
         //this.modelNames = modelNames;
         name = buildingTypeName;
         this.buildingRank = buildingRank;
-        this.popHousing = popHousing;
-        this.employeeCount = employeeCount;
         this.resources = resources;
         this.needsNeighbors = needsNeighbors;
         this.buildOnOutskirts = buildOnOutskirts;
@@ -201,8 +182,6 @@ public class upgradableBuilding : Building{
             modelName,
             buildLevel,
             buildingRank * (buildLevel+1),
-            popHousing * (buildLevel+1),
-            employeeCount,
             upgradedResource,
             needsNeighbors,
             buildOnOutskirts

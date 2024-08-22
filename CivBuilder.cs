@@ -81,8 +81,6 @@ public class CivBuilder{
                 new ("Science",-10)
             ],
             0, // Building rank
-            0, // Pop housing
-            4, // Employee Max
             //Building resource cost and per turn
             [
                 new ("Wood",-10,0),
@@ -122,8 +120,6 @@ public class CivBuilder{
                 new ("Science",-10)
             ],
             5, // Building rank
-            0, // Pop housing
-            0, // Employee Max
             //Building resource cost and per turn
             [
                 new ("Wood",-12,0),
@@ -162,8 +158,6 @@ public class CivBuilder{
                 new ("Science",-10)
             ],
             0, // Building rank
-            0, // Pop housing
-            4, // Employee Max
             //Building resource cost and per turn
             [
                 new ("Wood",0,4),
@@ -202,8 +196,6 @@ public class CivBuilder{
                 new ("Science",-10)
             ],
             0, // Building rank
-            0, // Pop housing
-            4, // Employee Max
             //Building resource cost and per turn
             [
                 new ("Wood",-10,0),
@@ -224,8 +216,6 @@ public class CivBuilder{
                 "Storehouse"
             ], 
             0, // Building rank
-            0, // Pop housing
-            0, // Employee Max
             //Building resource cost and per turn
             [
                 new Resources("Food",0,0,1000),
@@ -247,8 +237,6 @@ public class CivBuilder{
                 "Laboratory"
             ], 
             0, // Building rank
-            0, // Pop housing
-            4, // Employee Max
             //Building resource cost and per turn
             [
                 new ("Wood",-10,0),

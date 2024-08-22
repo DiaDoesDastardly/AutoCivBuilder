@@ -16,6 +16,7 @@ public class Citizen{
         birthTurn = turn;
     }
     public static void removeCitizen(int citizenId, CivBuilder city){
+        /*
         if(city.citizens[citizenId].employed){
             city.cityMap[
                 city.citizens[citizenId].placeOfEmployment[0],
@@ -28,6 +29,7 @@ public class Citizen{
                 city.citizens[citizenId].placeOfResidence[1]
             ].populationCount -= 1;
         }
+        */
         city.citizens.RemoveAt(citizenId);
     }
     public static void removeCitizens(int removalCount, CivBuilder city){
